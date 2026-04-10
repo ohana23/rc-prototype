@@ -140,6 +140,52 @@ body {
   white-space: nowrap;
 }
 
+.top-nav__favorites {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: inline-flex;
+  gap: 8px;
+  margin-right: auto;
+  min-height: 40px;
+  padding: 0;
+}
+
+.top-nav__favorites-icon {
+  display: block;
+  height: 24px;
+  width: 24px;
+}
+
+.top-nav__favorites-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.top-nav__favorites-label {
+  color: var(--pc-color-text-reversed);
+  font-size: var(--pc-font-body-size);
+  font-weight: 600;
+  letter-spacing: var(--pc-font-body-letter);
+  line-height: var(--pc-font-body-line);
+}
+
+.top-nav__favorites-link {
+  color: var(--pc-color-text-reversed-tertiary);
+  font-size: var(--pc-font-small-size);
+  font-weight: 400;
+  letter-spacing: var(--pc-font-small-letter);
+  line-height: var(--pc-font-small-line);
+  text-decoration: none;
+}
+
+.top-nav__favorites-link:hover,
+.top-nav__favorites-link:focus-visible {
+  color: var(--pc-color-text-reversed);
+  text-decoration: underline;
+}
+
 .top-nav__project-picker {
   padding: 2px 6px;
 }
@@ -342,6 +388,10 @@ body {
   }
 
   .top-nav__project-org {
+    display: none;
+  }
+
+  .top-nav__favorites {
     display: none;
   }
 
@@ -1074,6 +1124,146 @@ body {
   cursor: grabbing;
 }
 
+.immersive-viewer__viewport--compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.immersive-viewer__viewport-pane {
+  min-height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.immersive-viewer__viewport-pane--reality {
+  background: radial-gradient(circle at 25% 20%, #2b2b2b 0%, #141414 48%, #090909 100%);
+}
+
+.immersive-viewer__viewport-pane--bim {
+  background: linear-gradient(180deg, #15171a 0%, #0e1013 100%);
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: default;
+}
+
+.immersive-viewer__compare-pane-label {
+  background: rgba(11, 15, 18, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  color: #f4f6f7;
+  display: none;
+  font-size: 11px;
+  font-weight: 600;
+  left: 14px;
+  letter-spacing: 0.02em;
+  padding: 5px 10px;
+  pointer-events: none;
+  position: absolute;
+  top: 14px;
+  text-transform: uppercase;
+  z-index: 6;
+}
+
+.immersive-viewer__viewport--compare .immersive-viewer__compare-pane-label {
+  display: inline-flex;
+}
+
+.immersive-viewer__compare-pane-label--bim {
+  background: rgba(10, 58, 66, 0.82);
+  border-color: rgba(87, 222, 242, 0.45);
+}
+
+.immersive-viewer__bim-mock-stage {
+  background:
+    radial-gradient(circle at 25% 16%, rgba(34, 87, 97, 0.45) 0%, rgba(10, 12, 16, 0.2) 38%, rgba(6, 8, 10, 0.88) 100%),
+    linear-gradient(180deg, #0c1114 0%, #080b0d 100%);
+  height: 100%;
+  inset: 0;
+  overflow: hidden;
+  position: absolute;
+}
+
+.immersive-viewer__bim-mock-grid {
+  background-image:
+    linear-gradient(rgba(70, 227, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(70, 227, 255, 0.14) 1px, transparent 1px);
+  background-size: 52px 52px;
+  inset: -18%;
+  opacity: 0.66;
+  position: absolute;
+  transform-origin: center;
+}
+
+.immersive-viewer__bim-mock-model {
+  filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.5));
+  height: 220px;
+  left: 50%;
+  perspective: 700px;
+  position: absolute;
+  top: 52%;
+  transform-style: preserve-3d;
+  width: min(72%, 460px);
+}
+
+.immersive-viewer__bim-mock-pipe {
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 22px rgba(0, 0, 0, 0.24);
+  display: block;
+  position: absolute;
+}
+
+.immersive-viewer__bim-mock-pipe--green {
+  background: linear-gradient(180deg, #65cf5b 0%, #2d9a42 100%);
+  height: 42px;
+  left: 8%;
+  top: 28px;
+  width: 82%;
+}
+
+.immersive-viewer__bim-mock-pipe--yellow {
+  background: linear-gradient(180deg, #eacc52 0%, #c2a532 100%);
+  height: 34px;
+  left: 2%;
+  top: 104px;
+  width: 72%;
+}
+
+.immersive-viewer__bim-mock-pipe--blue {
+  background: linear-gradient(180deg, #7ad4ff 0%, #4ca6db 100%);
+  height: 30px;
+  right: 0;
+  top: 160px;
+  width: 56%;
+}
+
+.immersive-viewer__bim-mock-hud {
+  backdrop-filter: blur(2px);
+  background: rgba(8, 18, 23, 0.7);
+  border: 1px solid rgba(122, 222, 240, 0.26);
+  border-radius: 8px;
+  color: #daf7ff;
+  display: flex;
+  font-size: 11px;
+  gap: 10px;
+  left: 14px;
+  padding: 7px 9px;
+  position: absolute;
+  top: 52px;
+}
+
+.immersive-viewer__bim-mock-tie-indicator {
+  background: rgba(4, 91, 104, 0.84);
+  border: 1px solid rgba(111, 241, 255, 0.42);
+  border-radius: 999px;
+  bottom: 16px;
+  color: #e8fcff;
+  font-size: 11px;
+  font-weight: 600;
+  left: 50%;
+  padding: 5px 12px;
+  position: absolute;
+  transform: translateX(-50%);
+}
+
 .immersive-viewer__canvas {
   display: block;
   height: 100%;
@@ -1398,6 +1588,49 @@ body {
   border-bottom: 0;
 }
 
+.immersive-viewer__progress-accordion-summary {
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+
+.immersive-viewer__progress-accordion-summary:hover,
+.immersive-viewer__progress-accordion-summary:focus-within {
+  background: #f7f8fa;
+}
+
+.immersive-viewer__progress-schedule-link {
+  align-items: center;
+  color: #1769aa;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 600;
+  gap: 4px;
+  justify-self: start;
+  margin: 0;
+  text-decoration: none;
+}
+
+.immersive-viewer__progress-accordion-summary > .immersive-viewer__progress-schedule-link {
+  margin: 0 14px 8px;
+}
+
+.immersive-viewer__progress-schedule-link:hover,
+.immersive-viewer__progress-schedule-link:focus-visible {
+  color: #0f5b93;
+  text-decoration: underline;
+}
+
+.immersive-viewer__progress-schedule-link-icon {
+  display: inline-flex;
+  height: 14px;
+  width: 14px;
+}
+
+.immersive-viewer__progress-schedule-link-icon svg {
+  height: 100%;
+  width: 100%;
+}
+
 .immersive-viewer__progress-accordion-trigger {
   background: transparent;
   border: 0;
@@ -1407,11 +1640,6 @@ body {
   padding: 10px 14px;
   text-align: left;
   width: 100%;
-}
-
-.immersive-viewer__progress-accordion-trigger:hover,
-.immersive-viewer__progress-accordion-trigger:focus-visible {
-  background: #f7f8fa;
 }
 
 .immersive-viewer__progress-accordion-header {
@@ -1560,7 +1788,6 @@ body {
   align-items: baseline;
   display: flex;
   gap: 10px;
-  justify-content: space-between;
 }
 
 .immersive-viewer__progress-subitem-title {
@@ -2115,9 +2342,18 @@ body {
   transition-delay: 105ms;
 }
 
+.immersive-viewer__quick-toolbar--open .immersive-viewer__quick-toolbar-button:nth-child(5) {
+  transition-delay: 140ms;
+}
+
 .immersive-viewer__quick-toolbar-button:hover,
 .immersive-viewer__quick-toolbar-button:focus-visible {
   background: rgba(34, 34, 34, 0.95);
+}
+
+.immersive-viewer__quick-toolbar-button--active {
+  background: rgba(0, 103, 219, 0.88);
+  border-color: rgba(204, 225, 249, 0.78);
 }
 
 .immersive-viewer__quick-toolbar-capsule {
@@ -2305,6 +2541,18 @@ body {
   .immersive-viewer__control-buttons {
     flex-wrap: wrap;
   }
+
+  .immersive-viewer__bim-mock-hud {
+    font-size: 10px;
+    gap: 8px;
+    left: 10px;
+    top: 46px;
+  }
+
+  .immersive-viewer__bim-mock-tie-indicator {
+    bottom: 12px;
+    font-size: 10px;
+  }
 }
 
 @media (max-width: 680px) {
@@ -2348,6 +2596,14 @@ body {
   .immersive-viewer__viewport {
     height: 100%;
     min-height: 100%;
+  }
+
+  .immersive-viewer__viewport--compare {
+    display: block;
+  }
+
+  .immersive-viewer__viewport-pane--bim {
+    display: none;
   }
 
   .immersive-viewer__top-row {

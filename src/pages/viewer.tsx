@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import NextLink from "next/link";
+import { useRouter } from "next/router";
 import TopNav from "@/components/TopNav";
 
 type NavIndicatorState = {
@@ -489,6 +490,7 @@ const SIDE_TOOLS: SideTool[] = [
 ];
 
 export default function ViewerPage() {
+  const router = useRouter();
   const latestCapture = CAPTURE_POINTS[CAPTURE_POINTS.length - 1];
   const containerRef = useRef<HTMLDivElement | null>(null);
   const minimapFrameRef = useRef<HTMLDivElement | null>(null);
@@ -525,6 +527,7 @@ export default function ViewerPage() {
   const [isMinimapFullscreen, setIsMinimapFullscreen] = useState(false);
   const [isToolbarNearBottom, setIsToolbarNearBottom] = useState(false);
   const [isToolbarHovered, setIsToolbarHovered] = useState(false);
+  const [isBimCompareActive, setIsBimCompareActive] = useState(false);
   const [openPanel, setOpenPanel] = useState<"tasks" | "progress" | null>(null);
   const [selectedTask, setSelectedTask] = useState<CaptureTask | null>(null);
   const [progressSearchTerm, setProgressSearchTerm] = useState("");
@@ -532,6 +535,11 @@ export default function ViewerPage() {
   const [expandedProgressCategoryId, setExpandedProgressCategoryId] = useState<string | null>(
     PROGRESS_CATEGORIES[0]?.id ?? null
   );
+  const [bimComparePose, setBimComparePose] = useState({
+    headingDeg: 0,
+    pitchDeg: 0,
+    zoomPercent: Math.round(((95 - fovRef.current) / 60) * 100),
+  });
   const activeCapture = CAPTURE_POINTS.find((point) => point.id === activeCaptureId) ?? latestCapture;
   const activeCaptureTasks = TASKS_BY_CAPTURE_ID[activeCapture.id] ?? TASKS_BY_CAPTURE_ID[latestCapture.id] ?? [];
   const activeCaptureTasksRef = useRef(activeCaptureTasks);
@@ -544,6 +552,30 @@ export default function ViewerPage() {
   const isFirstCapture = activeCaptureIndex <= 0;
   const isLastCapture = activeCaptureIndex >= CAPTURE_POINTS.length - 1;
   const isQuickToolbarOpen = isToolbarNearBottom || isToolbarHovered;
+  const { headingDeg: bimHeadingDeg, pitchDeg: bimPitchDeg, zoomPercent: bimZoomPercent } = bimComparePose;
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    const rawCaptureId = router.query.captureId;
+    const captureId = Array.isArray(rawCaptureId) ? rawCaptureId[0] : rawCaptureId;
+    const rawPanel = router.query.panel;
+    const panel = Array.isArray(rawPanel) ? rawPanel[0] : rawPanel;
+
+    if (captureId) {
+      const matchingCapture = CAPTURE_POINTS.find((point) => point.id === captureId);
+      if (matchingCapture) {
+        setActiveCaptureId(matchingCapture.id);
+        setProgressCaptureId(matchingCapture.id);
+      }
+    }
+
+    if (panel === "tasks" || panel === "progress") {
+      setOpenPanel(panel);
+    }
+  }, [router.isReady, router.query.captureId, router.query.panel]);
 
   const normalizeAngle = (angle: number) => {
     const twoPi = Math.PI * 2;
@@ -880,6 +912,21 @@ export default function ViewerPage() {
           minimapHeadingRef.current = normalizedHeadingDeg;
           setMinimapHeadingDeg(normalizedHeadingDeg);
         }
+        const nextPitchDeg = (pitch * 180) / Math.PI;
+        const nextZoomPercent = Math.round(((95 - fovRef.current) / 60) * 100);
+        setBimComparePose((previousPose) => {
+          const headingChanged = Math.abs(previousPose.headingDeg - normalizedHeadingDeg) > 0.35;
+          const pitchChanged = Math.abs(previousPose.pitchDeg - nextPitchDeg) > 0.35;
+          const zoomChanged = previousPose.zoomPercent !== nextZoomPercent;
+          if (!headingChanged && !pitchChanged && !zoomChanged) {
+            return previousPose;
+          }
+          return {
+            headingDeg: normalizedHeadingDeg,
+            pitchDeg: nextPitchDeg,
+            zoomPercent: nextZoomPercent,
+          };
+        });
 
         const nextPinPositions: TaskPinScreenPosition[] = [];
         for (const task of activeCaptureTasksRef.current) {
@@ -1024,7 +1071,11 @@ export default function ViewerPage() {
       <TopNav />
       <main className="immersive-viewer" aria-label="Immersive jobsite viewer">
         <section className="immersive-viewer__stage" aria-label="3D viewer stage">
-          <div className="immersive-viewer__viewport" ref={containerRef}>
+          <div
+            className={`immersive-viewer__viewport${isBimCompareActive ? " immersive-viewer__viewport--compare" : ""}`}
+          >
+            <div className="immersive-viewer__viewport-pane immersive-viewer__viewport-pane--reality" ref={containerRef}>
+              <span className="immersive-viewer__compare-pane-label">Reality Capture</span>
             <div className="immersive-viewer__top-row">
               <NextLink href="/" className="immersive-viewer__back-link">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
@@ -1297,57 +1348,72 @@ export default function ViewerPage() {
 
                     return (
                       <li key={category.id} className="immersive-viewer__progress-accordion-item">
-                        <button
-                          type="button"
-                          className="immersive-viewer__progress-accordion-trigger"
-                          aria-expanded={isExpanded}
-                          onClick={() => {
-                            setExpandedProgressCategoryId((current) => (current === category.id ? null : category.id));
-                          }}
-                        >
-                          <div className="immersive-viewer__progress-accordion-header">
-                            <p className="immersive-viewer__progress-title">{category.title}</p>
-                            <span
-                              className={`immersive-viewer__progress-chevron${
-                                isExpanded ? " immersive-viewer__progress-chevron--expanded" : ""
-                              }`}
-                              aria-hidden="true"
-                            >
-                              <svg viewBox="0 0 24 24" focusable="false">
+                        <div className="immersive-viewer__progress-accordion-summary">
+                          <button
+                            type="button"
+                            className="immersive-viewer__progress-accordion-trigger"
+                            aria-expanded={isExpanded}
+                            onClick={() => {
+                              setExpandedProgressCategoryId((current) => (current === category.id ? null : category.id));
+                            }}
+                          >
+                            <div className="immersive-viewer__progress-accordion-header">
+                              <p className="immersive-viewer__progress-title">{category.title}</p>
+                              <span
+                                className={`immersive-viewer__progress-chevron${
+                                  isExpanded ? " immersive-viewer__progress-chevron--expanded" : ""
+                                }`}
+                                aria-hidden="true"
+                              >
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                  <path
+                                    fillRule="evenodd"
+                                    clipRule="evenodd"
+                                    d="M12 17L5 9.83894L6.79759 8L12 13.3221L17.2024 8L19 9.83895L12 17Z"
+                                    fill="#232729"
+                                  />
+                                </svg>
+                              </span>
+                            </div>
+                            <div className="immersive-viewer__progress-bar-track" aria-hidden="true">
+                              <span
+                                className={`immersive-viewer__progress-bar-fill${
+                                  isProgressOnTrack ? " immersive-viewer__progress-bar-fill--on-track" : ""
+                                }`}
+                                style={{ width: `${percentComplete}%` }}
+                              />
+                            </div>
+                            <div className="immersive-viewer__progress-accordion-meta">
+                              <div className="immersive-viewer__progress-meta-copy">
+                                <span
+                                  className={`immersive-viewer__progress-percent${
+                                    isProgressOnTrack ? " immersive-viewer__progress-percent--on-track" : ""
+                                  }`}
+                                >
+                                  {percentComplete}%
+                                </span>
+                                <p className="immersive-viewer__progress-quantity">
+                                  <span>{installedText}</span> /{" "}
+                                  <span className="immersive-viewer__progress-quantity-total">{totalText}</span>
+                                </p>
+                                <span className="immersive-viewer__progress-remaining-inline">{remainingText}</span>
+                              </div>
+                            </div>
+                          </button>
+                          <NextLink href="/scheduling" className="immersive-viewer__progress-schedule-link">
+                            <span>View Schedule</span>
+                            <span aria-hidden="true" className="immersive-viewer__progress-schedule-link-icon">
+                              <svg viewBox="0 0 20 20" focusable="false">
                                 <path
                                   fillRule="evenodd"
                                   clipRule="evenodd"
-                                  d="M12 17L5 9.83894L6.79759 8L12 13.3221L17.2024 8L19 9.83895L12 17Z"
-                                  fill="#232729"
+                                  d="M4 10C4 9.44772 4.44772 9 5 9H12.5858L10.2929 6.70711C9.90237 6.31658 9.90237 5.68342 10.2929 5.29289C10.6834 4.90237 11.3166 4.90237 11.7071 5.29289L15.7071 9.29289C16.0976 9.68342 16.0976 10.3166 15.7071 10.7071L11.7071 14.7071C11.3166 15.0976 10.6834 15.0976 10.2929 14.7071C9.90237 14.3166 9.90237 13.6834 10.2929 13.2929L12.5858 11H5C4.44772 11 4 10.5523 4 10Z"
+                                  fill="currentColor"
                                 />
                               </svg>
                             </span>
-                          </div>
-                          <div className="immersive-viewer__progress-bar-track" aria-hidden="true">
-                            <span
-                              className={`immersive-viewer__progress-bar-fill${
-                                isProgressOnTrack ? " immersive-viewer__progress-bar-fill--on-track" : ""
-                              }`}
-                              style={{ width: `${percentComplete}%` }}
-                            />
-                          </div>
-                          <div className="immersive-viewer__progress-accordion-meta">
-                            <div className="immersive-viewer__progress-meta-copy">
-                              <span
-                                className={`immersive-viewer__progress-percent${
-                                  isProgressOnTrack ? " immersive-viewer__progress-percent--on-track" : ""
-                                }`}
-                              >
-                                {percentComplete}%
-                              </span>
-                              <p className="immersive-viewer__progress-quantity">
-                                <span>{installedText}</span> /{" "}
-                                <span className="immersive-viewer__progress-quantity-total">{totalText}</span>
-                              </p>
-                              <span className="immersive-viewer__progress-remaining-inline">{remainingText}</span>
-                            </div>
-                          </div>
-                        </button>
+                          </NextLink>
+                        </div>
                         {isExpanded ? (
                           <div className="immersive-viewer__progress-accordion-body">
                             <ul className="immersive-viewer__progress-subitem-list">
@@ -1365,13 +1431,6 @@ export default function ViewerPage() {
                                   <li key={subItem.id} className="immersive-viewer__progress-subitem">
                                     <div className="immersive-viewer__progress-subitem-header">
                                       <p className="immersive-viewer__progress-subitem-title">{subItem.title}</p>
-                                      <span
-                                        className={`immersive-viewer__progress-percent${
-                                          isSubItemOnTrack ? " immersive-viewer__progress-percent--on-track" : ""
-                                        }`}
-                                      >
-                                        {subItemPercentComplete}%
-                                      </span>
                                     </div>
                                     <div className="immersive-viewer__progress-bar-track" aria-hidden="true">
                                       <span
@@ -1381,10 +1440,32 @@ export default function ViewerPage() {
                                         style={{ width: `${subItemPercentComplete}%` }}
                                       />
                                     </div>
-                                    <p className="immersive-viewer__progress-quantity">
-                                      <span>{subItemInstalledText}</span> /{" "}
-                                      <span className="immersive-viewer__progress-quantity-total">{subItemTotalText}</span>
-                                    </p>
+                                    <div className="immersive-viewer__progress-meta-copy">
+                                      <span
+                                        className={`immersive-viewer__progress-percent${
+                                          isSubItemOnTrack ? " immersive-viewer__progress-percent--on-track" : ""
+                                        }`}
+                                      >
+                                        {subItemPercentComplete}%
+                                      </span>
+                                      <p className="immersive-viewer__progress-quantity">
+                                        <span>{subItemInstalledText}</span> /{" "}
+                                        <span className="immersive-viewer__progress-quantity-total">{subItemTotalText}</span>
+                                      </p>
+                                    </div>
+                                    <NextLink href="/scheduling" className="immersive-viewer__progress-schedule-link">
+                                      <span>View Schedule</span>
+                                      <span aria-hidden="true" className="immersive-viewer__progress-schedule-link-icon">
+                                        <svg viewBox="0 0 20 20" focusable="false">
+                                          <path
+                                            fillRule="evenodd"
+                                            clipRule="evenodd"
+                                            d="M4 10C4 9.44772 4.44772 9 5 9H12.5858L10.2929 6.70711C9.90237 6.31658 9.90237 5.68342 10.2929 5.29289C10.6834 4.90237 11.3166 4.90237 11.7071 5.29289L15.7071 9.29289C16.0976 9.68342 16.0976 10.3166 15.7071 10.7071L11.7071 14.7071C11.3166 15.0976 10.6834 15.0976 10.2929 14.7071C9.90237 14.3166 9.90237 13.6834 10.2929 13.2929L12.5858 11H5C4.44772 11 4 10.5523 4 10Z"
+                                            fill="currentColor"
+                                          />
+                                        </svg>
+                                      </span>
+                                    </NextLink>
                                   </li>
                                 );
                               })}
@@ -1498,25 +1579,19 @@ export default function ViewerPage() {
                 type="button"
                 className="immersive-viewer__quick-toolbar-button"
               >
-                Measure
-              </button>
-              <button
-                type="button"
-                className="immersive-viewer__quick-toolbar-button"
-              >
-                Markup
-              </button>
-              <button
-                type="button"
-                className="immersive-viewer__quick-toolbar-button"
-              >
-                Snapshot
-              </button>
-              <button
-                type="button"
-                className="immersive-viewer__quick-toolbar-button"
-              >
                 Layers
+              </button>
+              <button
+                type="button"
+                className={`immersive-viewer__quick-toolbar-button${
+                  isBimCompareActive ? " immersive-viewer__quick-toolbar-button--active" : ""
+                }`}
+                onClick={() => {
+                  setIsBimCompareActive((previous) => !previous);
+                }}
+                aria-pressed={isBimCompareActive}
+              >
+                BIM Compare
               </button>
             </div>
             {!isQuickToolbarOpen ? <div className="immersive-viewer__quick-toolbar-capsule" aria-hidden="true" /> : null}
@@ -1637,6 +1712,36 @@ export default function ViewerPage() {
                 </div>
               </div>
             </div>
+            </div>
+            {isBimCompareActive ? (
+              <aside className="immersive-viewer__viewport-pane immersive-viewer__viewport-pane--bim" aria-label="BIM compare view">
+                <span className="immersive-viewer__compare-pane-label immersive-viewer__compare-pane-label--bim">BIM Model</span>
+                <div className="immersive-viewer__bim-mock-stage" aria-hidden="true">
+                  <div
+                    className="immersive-viewer__bim-mock-grid"
+                    style={{
+                      transform: `rotate(${bimHeadingDeg}deg) scale(${1 + (bimZoomPercent / 100) * 0.22})`,
+                    }}
+                  />
+                  <div
+                    className="immersive-viewer__bim-mock-model"
+                    style={{
+                      transform: `translate(-50%, -50%) rotateY(${bimHeadingDeg}deg) rotateX(${bimPitchDeg * 0.25}deg)`,
+                    }}
+                  >
+                    <span className="immersive-viewer__bim-mock-pipe immersive-viewer__bim-mock-pipe--green" />
+                    <span className="immersive-viewer__bim-mock-pipe immersive-viewer__bim-mock-pipe--yellow" />
+                    <span className="immersive-viewer__bim-mock-pipe immersive-viewer__bim-mock-pipe--blue" />
+                  </div>
+                  <div className="immersive-viewer__bim-mock-hud">
+                    <span>{`Heading ${Math.round(bimHeadingDeg)}°`}</span>
+                    <span>{`Pitch ${Math.round(bimPitchDeg)}°`}</span>
+                    <span>{`Zoom ${bimZoomPercent}%`}</span>
+                  </div>
+                  <div className="immersive-viewer__bim-mock-tie-indicator">Linked to Reality Capture</div>
+                </div>
+              </aside>
+            ) : null}
           </div>
         </section>
       </main>

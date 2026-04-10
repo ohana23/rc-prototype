@@ -86,6 +86,28 @@ export default function TopNav() {
       </button>
 
       <div className="top-nav__right">
+        <div className="top-nav__favorites">
+          <svg
+            className="top-nav__favorites-icon"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 2L14.75 9.36842H23L16.4 14.1053L19.15 22L12 17.2632L4.85 22L7.6 14.1053L1 9.36842H9.25L12 2Z"
+              fill="white"
+            />
+          </svg>
+          <span className="top-nav__favorites-copy">
+            <span className="top-nav__favorites-label">Favorites</span>
+            <a className="top-nav__favorites-link" href="/scheduling">
+              Scheduling
+            </a>
+          </span>
+        </div>
         <button className="top-nav__apps-picker" aria-label="App selector">
           <span className="top-nav__apps-copy">
             <span className="top-nav__apps-label">Apps</span>
