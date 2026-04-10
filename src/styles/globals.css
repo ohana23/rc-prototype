@@ -567,6 +567,10 @@ body {
   min-height: 168px;
 }
 
+.overview-card--project-map {
+  min-height: 282px;
+}
+
 .overview-card__header {
   align-items: center;
   background: #ffffff;
@@ -676,6 +680,186 @@ body {
 .jobsite-experience__cta:hover,
 .jobsite-experience__cta:focus-visible {
   background: #f4f6f7;
+}
+
+.project-map-card__header {
+  min-height: 48px;
+  padding: 10px 14px;
+}
+
+.project-map-card__title {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.project-map-card__weather {
+  align-items: baseline;
+  color: #232729;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.project-map-card__weather-now {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.project-map-card__weather-range {
+  color: #6a767c;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.project-map-card__viewport {
+  background: #0f1720;
+  border-top: 1px solid #d6dadc;
+  min-height: 216px;
+  overflow: hidden;
+  position: relative;
+}
+
+.project-map-card__panorama {
+  inset: 0;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 62%;
+  position: absolute;
+  user-select: none;
+  width: 100%;
+  z-index: 0;
+}
+
+.project-map-card__viewport-link {
+  inset: 0;
+  position: absolute;
+  z-index: 2;
+}
+
+.project-map-card__viewport-link:focus-visible {
+  outline: 3px solid #1f5db5;
+  outline-offset: -3px;
+}
+
+.project-map-card__mapped-items {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #acb5b9;
+  border-radius: 4px;
+  color: #232729;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 8px;
+  left: 10px;
+  min-height: 32px;
+  padding: 0 10px;
+  position: absolute;
+  top: 10px;
+  z-index: 1;
+}
+
+.project-map-card__caret {
+  color: #6a767c;
+  font-size: 10px;
+}
+
+.project-map-card__search-tooltip {
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  color: #232729;
+  left: 34%;
+  max-width: min(420px, calc(100% - 120px));
+  padding: 10px 14px;
+  position: absolute;
+  top: 40px;
+  z-index: 1;
+}
+
+.project-map-card__search-tooltip p {
+  margin: 0;
+}
+
+.project-map-card__search-tooltip p:first-child {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.project-map-card__search-tooltip p:last-child {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.project-map-card__pins {
+  inset: 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.project-map-card__pin {
+  background: #1f2c36;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  height: 14px;
+  position: absolute;
+  width: 14px;
+}
+
+.project-map-card__pin--active {
+  background: #ff5100;
+  left: 49%;
+  top: 44%;
+}
+
+.project-map-card__pin--secondary {
+  left: 59%;
+  top: 39%;
+}
+
+.project-map-card__pin--tertiary {
+  left: 66%;
+  top: 47%;
+}
+
+.project-map-card__pin--quaternary {
+  left: 75%;
+  top: 42%;
+}
+
+.project-map-card__expand {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #acb5b9;
+  border-radius: 4px;
+  color: #2f3437;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 28px;
+  z-index: 1;
+}
+
+.project-map-card__attribution {
+  background: rgba(8, 8, 8, 0.72);
+  border-radius: 999px;
+  bottom: 8px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  left: 8px;
+  padding: 3px 8px;
+  position: absolute;
+  text-transform: lowercase;
+  z-index: 1;
 }
 
 .project-identity {
@@ -838,22 +1022,34 @@ body {
 
 .immersive-viewer__back-link {
   align-items: center;
-  background: rgba(0, 0, 0, 0.68);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: #ffffff;
+  border: 1px solid #d6dadc;
   border-radius: 8px;
-  color: #ffffff;
+  color: #232729;
   display: inline-flex;
   flex: 0 0 auto;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
+  gap: 6px;
   min-height: 30px;
-  padding: 0 11px;
+  padding: 2px 10px 2px 2px;
   text-decoration: none;
 }
 
 .immersive-viewer__back-link:hover,
 .immersive-viewer__back-link:focus-visible {
-  background: rgba(24, 24, 24, 0.9);
+  background: #eef1f3;
+}
+
+.immersive-viewer__back-link svg {
+  display: block;
+  flex: 0 0 auto;
+  height: 24px;
+  width: 24px;
+}
+
+.immersive-viewer__back-link span {
+  line-height: 1;
 }
 
 .immersive-viewer__stage {
@@ -896,13 +1092,715 @@ body {
   pointer-events: auto;
 }
 
+.immersive-viewer__side-tools {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  left: 14px;
+  overflow: visible;
+  pointer-events: auto;
+  position: absolute;
+  top: 52px;
+  width: 36px;
+  z-index: 1000;
+}
+
+.immersive-viewer__side-tool-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #232729;
+  cursor: pointer;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  transition: background-color 140ms ease;
+  width: 36px;
+}
+
+.immersive-viewer__side-tool-button + .immersive-viewer__side-tool-button {
+  border-top: 1px solid #d6dadc;
+}
+
+.immersive-viewer__side-tool-button:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.immersive-viewer__side-tool-button:last-child {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.immersive-viewer__side-tool-button svg {
+  height: 24px;
+  width: 24px;
+}
+
+.immersive-viewer__side-tool-button svg [fill]:not([fill="none"]) {
+  fill: #232729;
+}
+
+.immersive-viewer__side-tool-button svg [stroke]:not([stroke="none"]) {
+  stroke: #232729;
+}
+
+.immersive-viewer__side-tool-button--active {
+  background: #edf2fc;
+  color: #232729;
+}
+
+.immersive-viewer__side-tool-button:hover,
+.immersive-viewer__side-tool-button:focus-visible {
+  background: #c7c7c7;
+  color: #232729;
+}
+
+.immersive-viewer__side-tool-button::after {
+  background: rgba(13, 14, 16, 0.94);
+  border-radius: 6px;
+  color: #ffffff;
+  content: attr(data-tooltip);
+  font-size: 12px;
+  font-weight: 600;
+  left: calc(100% + 8px);
+  line-height: 1;
+  opacity: 0;
+  padding: 7px 10px;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  transition: opacity 130ms ease, transform 130ms ease;
+  white-space: nowrap;
+  z-index: 1002;
+}
+
+.immersive-viewer__side-tool-button::before {
+  border-bottom: 5px solid transparent;
+  border-right: 5px solid rgba(13, 14, 16, 0.94);
+  border-top: 5px solid transparent;
+  content: "";
+  left: calc(100% + 3px);
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  transition: opacity 130ms ease, transform 130ms ease;
+  z-index: 1001;
+}
+
+.immersive-viewer__side-tool-button:hover::after,
+.immersive-viewer__side-tool-button:hover::before,
+.immersive-viewer__side-tool-button:focus-visible::after,
+.immersive-viewer__side-tool-button:focus-visible::before {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.immersive-viewer__side-tool-button:hover svg [fill="#232729"],
+.immersive-viewer__side-tool-button:focus-visible svg [fill="#232729"] {
+  fill: #232729;
+}
+
+.immersive-viewer__tasks-panel,
+.immersive-viewer__progress-panel {
+  background: #ffffff;
+  border: 1px solid #d6dadc;
+  border-radius: 10px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+  left: 58px;
+  max-height: min(460px, calc(100vh - 84px));
+  overflow: hidden;
+  pointer-events: auto;
+  position: absolute;
+  top: 52px;
+  width: min(340px, calc(100vw - 86px));
+  z-index: 4;
+}
+
+.immersive-viewer__tasks-panel-header,
+.immersive-viewer__progress-panel-header {
+  border-bottom: 1px solid #e8eaed;
+  display: grid;
+  gap: 3px;
+  padding: 12px 14px 10px;
+}
+
+.immersive-viewer__tasks-panel-action-row {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.immersive-viewer__tasks-panel-title {
+  color: #232729;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.immersive-viewer__tasks-menu-button,
+.immersive-viewer__tasks-done-button {
+  background: #d6dadc;
+  border: 0;
+  border-radius: 4px;
+  color: #232729;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  margin: 0;
+  min-height: 30px;
+  transition: background-color 120ms ease;
+}
+
+.immersive-viewer__tasks-menu-button {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  height: 30px;
+  padding: 0;
+  width: 30px;
+}
+
+.immersive-viewer__tasks-menu-button svg {
+  fill: #232729;
+  height: 14px;
+  width: 14px;
+}
+
+.immersive-viewer__tasks-done-button {
+  align-items: center;
+  display: inline-flex;
+  height: 30px;
+  justify-content: center;
+  padding: 0;
+  width: 30px;
+}
+
+.immersive-viewer__tasks-done-button svg {
+  display: block;
+  height: 24px;
+  width: 24px;
+}
+
+.immersive-viewer__tasks-menu-button:hover,
+.immersive-viewer__tasks-menu-button:focus-visible,
+.immersive-viewer__tasks-done-button:hover,
+.immersive-viewer__tasks-done-button:focus-visible {
+  background: #c7cdd1;
+}
+
+.immersive-viewer__tasks-panel-subtitle {
+  color: #6a7177;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.immersive-viewer__progress-filter-row {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.immersive-viewer__progress-search {
+  align-items: center;
+  background: #f7f8fa;
+  border: 1px solid #d6dadc;
+  border-radius: 6px;
+  color: #4f565c;
+  display: flex;
+  gap: 6px;
+  padding: 0 8px;
+}
+
+.immersive-viewer__progress-search svg {
+  height: 14px;
+  width: 14px;
+}
+
+.immersive-viewer__progress-search input {
+  background: transparent;
+  border: 0;
+  color: #232729;
+  font-size: 12px;
+  font-weight: 500;
+  height: 30px;
+  outline: none;
+  width: 100%;
+}
+
+.immersive-viewer__progress-date {
+  display: inline-flex;
+  position: relative;
+  width: fit-content;
+}
+
+.immersive-viewer__progress-date select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: #ffffff;
+  border: 1px solid #d6dadc;
+  border-radius: 6px;
+  color: #232729;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  height: 30px;
+  max-width: 210px;
+  padding: 0 30px 0 10px;
+}
+
+.immersive-viewer__progress-date-chevron {
+  align-items: center;
+  color: #232729;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+  right: 8px;
+  top: 0;
+  width: 16px;
+}
+
+.immersive-viewer__progress-date-chevron svg {
+  height: 16px;
+  width: 16px;
+}
+
+.immersive-viewer__progress-accordion-list {
+  display: grid;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  max-height: min(392px, calc(100vh - 152px));
+  overflow: auto;
+  padding: 0;
+}
+
+.immersive-viewer__progress-accordion-item {
+  border-bottom: 1px solid #eceef0;
+}
+
+.immersive-viewer__progress-accordion-item:last-child {
+  border-bottom: 0;
+}
+
+.immersive-viewer__progress-accordion-trigger {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  padding: 10px 14px;
+  text-align: left;
+  width: 100%;
+}
+
+.immersive-viewer__progress-accordion-trigger:hover,
+.immersive-viewer__progress-accordion-trigger:focus-visible {
+  background: #f7f8fa;
+}
+
+.immersive-viewer__progress-accordion-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.immersive-viewer__progress-title {
+  color: #232729;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.immersive-viewer__progress-percent {
+  color: #232729;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.immersive-viewer__progress-percent--on-track {
+  color: #2f8a2f;
+}
+
+.immersive-viewer__progress-bar-track {
+  background: #e3e8ef;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.immersive-viewer__progress-bar-fill {
+  background: #232729;
+  border-radius: 999px;
+  display: block;
+  height: 100%;
+  min-width: 2px;
+}
+
+.immersive-viewer__progress-bar-fill--on-track {
+  background: #2f8a2f;
+}
+
+.immersive-viewer__progress-accordion-meta {
+  align-items: center;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.immersive-viewer__progress-meta-copy {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.immersive-viewer__progress-quantity {
+  color: #4f565c;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.immersive-viewer__progress-quantity-total {
+  opacity: 0.5;
+}
+
+.immersive-viewer__progress-remaining-inline {
+  color: #6a7177;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateX(-4px);
+  transition: max-width 140ms ease, opacity 120ms ease, transform 140ms ease;
+  white-space: nowrap;
+}
+
+.immersive-viewer__progress-accordion-trigger:hover .immersive-viewer__progress-remaining-inline,
+.immersive-viewer__progress-accordion-trigger:focus-visible .immersive-viewer__progress-remaining-inline {
+  max-width: 180px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.immersive-viewer__progress-chevron {
+  color: #4f565c;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 16px;
+  line-height: 1;
+  transition: transform 140ms ease;
+  width: 16px;
+}
+
+.immersive-viewer__progress-chevron svg {
+  height: 100%;
+  width: 100%;
+}
+
+.immersive-viewer__progress-chevron--expanded {
+  transform: rotate(180deg);
+}
+
+.immersive-viewer__progress-accordion-body {
+  background: #e3e4e789;
+  border-radius: 6px;
+  border-top: 1px dashed #eceef0;
+  margin: 0 14px 10px;
+  padding: 8px 10px;
+}
+
+.immersive-viewer__progress-subitem-list {
+  display: grid;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.immersive-viewer__progress-subitem {
+  border-top: 1px solid #eceef0;
+  display: grid;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.immersive-viewer__progress-subitem:first-child {
+  border-top: 0;
+  padding-top: 2px;
+}
+
+.immersive-viewer__progress-subitem:last-child {
+  padding-bottom: 2px;
+}
+
+.immersive-viewer__progress-subitem-header {
+  align-items: baseline;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.immersive-viewer__progress-subitem-title {
+  color: #4f565c;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+  min-width: 0;
+}
+
+.immersive-viewer__progress-empty-state {
+  color: #6a7177;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 14px;
+}
+
+.immersive-viewer__tasks-list {
+  display: grid;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  max-height: min(392px, calc(100vh - 152px));
+  overflow: auto;
+  padding: 0;
+}
+
+.immersive-viewer__tasks-list-item {
+  border-bottom: 1px solid #eceef0;
+  padding: 0;
+}
+
+.immersive-viewer__tasks-list-item:last-child {
+  border-bottom: 0;
+}
+
+.immersive-viewer__task-detail {
+  display: grid;
+  gap: 12px;
+  max-height: min(392px, calc(100vh - 152px));
+  overflow: auto;
+  padding: 14px;
+}
+
+.immersive-viewer__task-detail-photos {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.immersive-viewer__task-detail-photo {
+  align-items: center;
+  aspect-ratio: 4 / 5;
+  background: linear-gradient(180deg, #f4f6f8 0%, #e8edf2 100%);
+  border: 1px solid #d8dde3;
+  border-radius: 8px;
+  color: #6a7177;
+  display: flex;
+  font-size: 11px;
+  font-weight: 600;
+  justify-content: center;
+}
+
+.immersive-viewer__task-detail-row {
+  align-items: center;
+  border-bottom: 1px solid #eceef0;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding-bottom: 10px;
+}
+
+.immersive-viewer__task-detail-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.immersive-viewer__task-detail-label {
+  color: #6a7177;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.immersive-viewer__task-detail-value {
+  color: #232729;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+  text-align: right;
+}
+
+.immersive-viewer__task-button {
+  align-items: stretch;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  padding: 10px 14px;
+  text-align: left;
+  transition: background-color 120ms ease;
+  width: 100%;
+}
+
+.immersive-viewer__task-button:hover,
+.immersive-viewer__task-button:focus-visible {
+  background: #f7f8fa;
+}
+
+.immersive-viewer__task-content {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.immersive-viewer__task-top-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.immersive-viewer__task-title {
+  color: #232729;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+  min-width: 0;
+}
+
+.immersive-viewer__task-bottom-row {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.immersive-viewer__task-meta {
+  color: #6a7177;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  margin: 0;
+  min-width: 0;
+}
+
+.immersive-viewer__task-status-pill {
+  background: #fcf0cf;
+  border: 1px solid #983000;
+  border-radius: 999px;
+  color: #983000;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  margin-top: 2px;
+  padding: 6px 8px;
+  text-transform: none;
+}
+
+.immersive-viewer__task-detail-row .immersive-viewer__task-status-pill {
+  margin-top: 0;
+}
+
+.immersive-viewer__task-view-indicator {
+  color: #2066df;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  opacity: 0;
+  color: #6a7177;
+  flex-shrink: 0;
+  transform: translateX(-4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.immersive-viewer__task-button:hover .immersive-viewer__task-view-indicator,
+.immersive-viewer__task-button:focus-visible .immersive-viewer__task-view-indicator {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.immersive-viewer__task-pins-layer {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 3;
+}
+
+.immersive-viewer__task-pin {
+  align-items: center;
+  background: rgba(12, 15, 20, 0.92);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  box-shadow: 0 0 0 3px rgba(32, 102, 223, 0.34), 0 8px 16px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  display: inline-flex;
+  height: 30px;
+  justify-content: center;
+  left: 0;
+  padding: 0;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  transform: translate(-50%, -50%);
+  transition: transform 120ms ease, box-shadow 140ms ease, background-color 140ms ease;
+  width: 30px;
+}
+
+.immersive-viewer__task-pin:hover,
+.immersive-viewer__task-pin:focus-visible {
+  background: rgba(8, 10, 14, 0.98);
+  box-shadow: 0 0 0 4px rgba(32, 102, 223, 0.44), 0 10px 18px rgba(0, 0, 0, 0.58);
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.immersive-viewer__task-pin-dot {
+  animation: immersive-task-pin-pulse 1.8s ease-in-out infinite;
+  background: #2066df;
+  border: 1.5px solid rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  height: 12px;
+  width: 12px;
+}
+
 .immersive-viewer__minimap {
   display: grid;
   gap: 6px;
   pointer-events: none;
   position: absolute;
-  right: 14px;
-  top: 14px;
+  bottom: 14px;
+  left: 14px;
   width: min(300px, calc(100vw - 28px));
   z-index: 4;
 }
@@ -926,7 +1824,7 @@ body {
   pointer-events: auto;
   position: relative;
   transform: scale(0.75);
-  transform-origin: top right;
+  transform-origin: bottom left;
   transition: transform 180ms ease;
   width: 100%;
 }
@@ -970,6 +1868,42 @@ body {
   object-fit: cover;
   object-position: center;
   width: 100%;
+}
+
+.immersive-viewer__minimap-hotspot-pin {
+  align-items: center;
+  background: rgba(8, 10, 12, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  box-shadow: 0 0 0 3px rgba(255, 81, 0, 0.35), 0 8px 16px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  left: 58%;
+  padding: 0;
+  position: absolute;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  transition: transform 120ms ease, box-shadow 140ms ease, background 140ms ease;
+  width: 24px;
+  z-index: 2;
+}
+
+.immersive-viewer__minimap-hotspot-pin:hover,
+.immersive-viewer__minimap-hotspot-pin:focus-visible {
+  background: rgba(14, 16, 18, 0.96);
+  box-shadow: 0 0 0 4px rgba(255, 81, 0, 0.45), 0 10px 18px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.immersive-viewer__minimap-hotspot-pin-dot {
+  animation: immersive-hotspot-pulse 1.8s ease-in-out infinite;
+  background: #ff5100;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  height: 10px;
+  width: 10px;
 }
 
 .immersive-viewer__minimap-indicator {
@@ -1080,21 +2014,46 @@ body {
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.28), 0 10px 24px rgba(0, 0, 0, 0.55);
 }
 
+@keyframes immersive-hotspot-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 81, 0, 0.48);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 81, 0, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 81, 0, 0);
+  }
+}
+
+@keyframes immersive-task-pin-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(32, 102, 223, 0.45);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(32, 102, 223, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(32, 102, 223, 0);
+  }
+}
+
 .immersive-viewer__controls {
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
   align-items: center;
-  background: rgba(12, 12, 12, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42);
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
   left: 50%;
   max-width: calc(100% - 28px);
-  padding: 10px 12px;
+  padding: 6px;
   position: absolute;
   transform: translateX(-50%);
   bottom: 14px;
@@ -1192,38 +2151,51 @@ body {
 
 .immersive-viewer__control-buttons {
   display: inline-flex;
-  gap: 8px;
+  gap: 0;
 }
 
 .immersive-viewer__control-button {
-  background: rgba(15, 15, 15, 0.84);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 8px;
-  color: #eef2f3;
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #232729;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  min-height: 30px;
-  min-width: 66px;
-  padding: 0 12px;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  line-height: 1;
+  min-width: 36px;
+  padding: 0;
+  transition: background-color 140ms ease;
 }
 
 .immersive-viewer__control-button:hover,
 .immersive-viewer__control-button:focus-visible {
-  background: rgba(40, 40, 40, 0.92);
+  background: #eef1f3;
+  color: #232729;
+}
+
+.immersive-viewer__control-button + .immersive-viewer__control-button {
+  border-left: 1px solid #d6dadc;
 }
 
 .immersive-viewer__control-button[aria-pressed="true"] {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.7);
-  color: #ffffff;
+  background: #edf2fc;
+  color: #0067db;
+}
+
+.immersive-viewer__control-button--icon svg {
+  display: block;
+  height: 20px;
+  width: 20px;
 }
 
 .immersive-viewer__capture-nav {
   align-items: center;
-  background: rgba(18, 18, 18, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 10px;
+  background: #ffffff;
+  border-left: 1px solid #d6dadc;
+  border-radius: 0;
   display: inline-flex;
   gap: 12px;
   min-height: 36px;
@@ -1238,36 +2210,44 @@ body {
 
 .immersive-viewer__capture-nav-button {
   align-items: center;
-  background: rgba(15, 15, 15, 0.84);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 8px;
-  color: #eef2f3;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #232729;
   cursor: pointer;
   display: inline-flex;
   font-size: 15px;
   font-weight: 700;
-  height: 28px;
+  height: 24px;
   justify-content: center;
   line-height: 1;
   padding: 0;
-  width: 32px;
+  width: 24px;
 }
 
 .immersive-viewer__capture-nav-button:hover,
 .immersive-viewer__capture-nav-button:focus-visible {
-  background: rgba(40, 40, 40, 0.92);
+  background: transparent;
+}
+
+.immersive-viewer__capture-nav-button:hover svg rect,
+.immersive-viewer__capture-nav-button:focus-visible svg rect {
+  fill: #eef1f3;
+}
+
+.immersive-viewer__capture-nav-button:hover svg path,
+.immersive-viewer__capture-nav-button:focus-visible svg path {
+  fill: #232729;
 }
 
 .immersive-viewer__capture-nav-button:disabled {
-  background: rgba(35, 35, 35, 0.7);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: rgba(238, 242, 243, 0.45);
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .immersive-viewer__capture-nav-date {
-  color: #efefef;
-  font-size: 12px;
+  color: #232729;
+  font-size: 14px;
   font-weight: 600;
   min-width: 110px;
   text-align: left;
@@ -1292,6 +2272,15 @@ body {
   .overview-card__body--jobsite-experience {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .project-map-card__weather-now {
+    font-size: 24px;
+  }
+
+  .project-map-card__search-tooltip {
+    left: 26%;
+    max-width: min(360px, calc(100% - 60px));
   }
 
   .project-metadata {
@@ -1319,6 +2308,31 @@ body {
 }
 
 @media (max-width: 680px) {
+  .project-map-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .project-map-card__weather-now {
+    font-size: 20px;
+  }
+
+  .project-map-card__viewport {
+    min-height: 190px;
+  }
+
+  .project-map-card__search-tooltip {
+    left: 12px;
+    max-width: calc(100% - 24px);
+    top: 52px;
+  }
+
+  .project-map-card__pin--tertiary,
+  .project-map-card__pin--quaternary {
+    display: none;
+  }
+
   .immersive-viewer {
     padding: 0;
   }
@@ -1342,8 +2356,8 @@ body {
   }
 
   .immersive-viewer__minimap {
-    right: 12px;
-    top: 12px;
+    bottom: 12px;
+    left: 12px;
     width: min(220px, calc(100vw - 24px));
   }
 
@@ -1353,7 +2367,7 @@ body {
   }
 
   .immersive-viewer__control-button {
-    flex: 1 1 calc(50% - 4px);
+    flex: 0 0 auto;
     min-width: 0;
   }
 

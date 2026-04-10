@@ -1,33 +1,42 @@
-import NextLink from "next/link";
 import { Button, Card, Link as ProcoreLink, Typography } from "@procore/core-react";
+import ProjectMapAccessCard from "@/components/ProjectMapAccessCard";
+
+type ViewAccessEntryStatus = "available" | "coming-soon";
+
+type ViewAccessEntry = {
+  id: string;
+  title: string;
+  href?: string;
+  mappedItemsLabel: string;
+  accessLabel: string;
+  status: ViewAccessEntryStatus;
+};
+
+const VIEW_ACCESS_ENTRIES: ViewAccessEntry[] = [
+  {
+    id: "3d-view",
+    title: "Project Visual",
+    href: "/viewer",
+    mappedItemsLabel: "All Mapped Items",
+    accessLabel: "Open 3D jobsite experience",
+    status: "available",
+  },
+];
 
 export default function HomeContent() {
   return (
     <main className="overview-cards" aria-label="Project overview cards">
-      <section className="overview-cards__row overview-cards__row--hero" aria-label="3D jobsite experience">
-        <Card className="overview-card overview-card--jobsite-experience">
-          <header className="overview-card__header">
-            <Typography as="h2" intent="h3" weight="semibold" className="overview-card__title">
-              3D Jobsite Experience
-            </Typography>
-          </header>
-          <div className="overview-card__body overview-card__body--jobsite-experience">
-            <div className="jobsite-experience__copy">
-              <Typography as="p" intent="h2" weight="semibold" className="jobsite-experience__headline">
-                Explore a photo-realistic 360 capture of the jobsite
-              </Typography>
-              <Typography as="p" intent="body" className="jobsite-experience__description">
-                Move beyond BIM-only views with immersive 3D walkthroughs, a timeline to compare site progress over time, and
-                field-ready context to review what changed across each capture.
-              </Typography>
-            </div>
-            <div className="jobsite-experience__actions">
-              <NextLink href="/viewer" className="jobsite-experience__cta">
-                Open 3D Jobsite Experience
-              </NextLink>
-            </div>
-          </div>
-        </Card>
+      <section className="overview-cards__row overview-cards__row--hero" aria-label="Project map access">
+        {VIEW_ACCESS_ENTRIES.map((entry) => (
+          <ProjectMapAccessCard
+            key={entry.id}
+            title={entry.title}
+            href={entry.href}
+            mappedItemsLabel={entry.mappedItemsLabel}
+            accessLabel={entry.accessLabel}
+            status={entry.status}
+          />
+        ))}
       </section>
 
       <section className="overview-cards__row overview-cards__row--top" aria-label="Top overview row">
@@ -56,7 +65,7 @@ export default function HomeContent() {
               </div>
               <div className="project-identity__copy">
                 <Typography as="p" intent="h3" weight="semibold" className="project-identity__title">
-                  Seattle Corridor Railway
+                  Utah Stadium
                 </Typography>
                 <ProcoreLink href="https://www.example.com" target="_blank" rel="noreferrer">
                   US

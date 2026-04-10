@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
@@ -11,6 +11,7 @@
   "dependencies": {
     "@procore/core-react": "^12.43.0",
     "@procore/globalization-toolkit": "^3.6.1",
+    "formidable": "^3.5.4",
     "formik": "^2.4.9",
     "next": "16.2.1",
     "react": "^18.2.0",
@@ -19,6 +20,7 @@
     "three": "^0.183.2"
   },
   "devDependencies": {
+    "@types/formidable": "^3.5.0",
     "@types/node": "^20",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

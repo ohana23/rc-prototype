@@ -5,26 +5,45 @@ import Document, {
   Main,
   NextScript,
 } from "next/document";
-import { ServerStyleSheet } from "styled-components";
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: DocumentContext) {
-    const sheet = new ServerStyleSheet();
     const originalRenderPage = ctx.renderPage;
+    type StyleCollector = {
+      collectStyles: (node: JSX.Element) => JSX.Element;
+      getStyleElement: () => JSX.Element;
+      seal: () => void;
+    };
+
+    let sheet: StyleCollector | null = null;
+    try {
+      // Keep runtime stable when module resolution differs between nested workspace roots.
+      const runtimeRequire = eval("require") as (id: string) => { ServerStyleSheet?: new () => StyleCollector };
+      const styledComponents = runtimeRequire("styled-components");
+      if (styledComponents.ServerStyleSheet) {
+        sheet = new styledComponents.ServerStyleSheet();
+      }
+    } catch {
+      sheet = null;
+    }
 
     try {
-      ctx.renderPage = () =>
-        originalRenderPage({
-          enhanceApp: (App) => (props) => sheet.collectStyles(<App {...props} />),
-        });
+      if (sheet) {
+        ctx.renderPage = () =>
+          originalRenderPage({
+            enhanceApp: (App) => (props) => sheet.collectStyles(<App {...props} />),
+          });
+      }
 
       const initialProps = await Document.getInitialProps(ctx);
       return {
         ...initialProps,
-        styles: [initialProps.styles, sheet.getStyleElement()],
+        styles: sheet ? [initialProps.styles, sheet.getStyleElement()] : initialProps.styles,
       };
     } finally {
-      sheet.seal();
+      if (sheet) {
+        sheet.seal();
+      }
     }
   }
 

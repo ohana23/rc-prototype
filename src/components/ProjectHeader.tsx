@@ -11,7 +11,7 @@ export default function ProjectHeader() {
               <path d="M5 7h2v2H5V7Zm0 4h2v2H5v-2Zm3-4h2v2H8V7Zm0 4h2v2H8v-2Zm6-6h2v2h-2V5Zm0 4h2v2h-2V9Zm0 4h2v2h-2v-2Z" />
             </svg>
           </span>
-          Seattle Corridor Railway
+          Utah Stadium
         </h1>
 
         <div className="project-header__quick-create-control">

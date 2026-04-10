@@ -68,7 +68,7 @@ export default function TopNav() {
           <img src={projectImage} alt="" className="top-nav__project-image" />
           <span className="top-nav__project-copy">
             <span className="top-nav__project-org">Vertigo Construction</span>
-            <span className="top-nav__project-name">Seattle Corridor Railway</span>
+            <span className="top-nav__project-name">Utah Stadium</span>
           </span>
           <img src={iconCaret} alt="" className="top-nav__caret" />
         </button>
