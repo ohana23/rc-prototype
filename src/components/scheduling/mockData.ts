@@ -25,12 +25,12 @@ export const scheduleRows: ScheduleRow[] = [
   {
     id: "doors-slabs",
     label: "Door Slabs",
-    percentComplete: 82,
+    percentComplete: 100,
     status: "on-track",
     groupId: "doors",
     level: 1,
     order: 2,
-    bars: [{ id: "slabs-exec", startYear: 2026.2, endYear: 2027.35, color: "blue" }],
+    bars: [{ id: "slabs-exec", startYear: 2025.25, endYear: 2025.92, color: "blue" }],
   },
   {
     id: "seals-weatherproofing",
@@ -85,7 +85,7 @@ export const scheduleRows: ScheduleRow[] = [
   {
     id: "new-activity",
     label: "Framing layout",
-    percentComplete: 65,
+    percentComplete: 100,
     status: "on-track",
     groupId: "drywall",
     level: 1,

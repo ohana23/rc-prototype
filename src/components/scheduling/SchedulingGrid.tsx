@@ -37,6 +37,7 @@ const statusClassMap: Record<ScheduleStatus, string> = {
   "late-to-start": styles.statusLateToStart,
 };
 const additionalOverPlanActivityIds = new Set(["doors-slabs", "grouting"]);
+const payWorkflowActivityIds = new Set(["doors-slabs", "new-activity"]);
 const interiorViewerHref = "/viewer?captureId=interior-detail-2026&panel=progress";
 
 function getActualVsPlannedValue(activityId: string) {
@@ -141,6 +142,10 @@ export function SchedulingGrid({ collapsedGroups, onToggleGroup }: SchedulingGri
     setTablePaneWidth((previousWidth) => clampTablePaneWidth(previousWidth + direction * step));
   };
 
+  const handleInitiatePay = (itemLabel: string) => {
+    window.alert(`Initiate Pay workflow started for ${itemLabel}.`);
+  };
+
   return (
     <section
       ref={gridWrapRef}
@@ -185,6 +190,8 @@ export function SchedulingGrid({ collapsedGroups, onToggleGroup }: SchedulingGri
           const groupRows = scheduleRows.filter((row) => row.groupId === group.id).sort((a, b) => a.order - b.order);
           const visibleRows = isCollapsed ? [] : groupRows;
           const groupPercentComplete = getGroupAggregatePercent(groupRows.map((row) => row.percentComplete));
+          const canInitiateGroupPay = groupPercentComplete >= 100;
+          const isGroupComplete = groupPercentComplete >= 100;
           const calculatedGroupActualVsPlan = getGroupAggregatePercent(
             groupRows.map((row) => getActualVsPlannedValue(row.id))
           );
@@ -201,20 +208,37 @@ export function SchedulingGrid({ collapsedGroups, onToggleGroup }: SchedulingGri
                     <span className={styles.groupLabel}>{group.label}</span>
                     <span className={styles.groupCount}>{groupRows.length}</span>
                   </div>
-                  <span className={styles.percentText}>{groupPercentComplete}%</span>
-                  <span className={styles.actualVsPlanCell}>
-                    <span
-                      className={`${styles.actualVsPlanText} ${groupActualVsPlan >= 100 ? styles.actualVsPlanOverPlan : ""}`}
-                    >
-                      {groupActualVsPlan}% to plan
+                  <span className={styles.percentCell}>
+                    <span className={`${styles.percentText} ${isGroupComplete ? styles.percentTextComplete : ""}`}>
+                      {groupPercentComplete}%
                     </span>
-                    <NextLink
-                      href={interiorViewerHref}
-                      className={styles.actualVsPlanViewerLink}
-                      aria-label="Open interior 360 capture"
-                    >
-                      <ViewerLinkIcon />
-                    </NextLink>
+                    {canInitiateGroupPay ? (
+                      <button
+                        type="button"
+                        className={styles.initiatePayButton}
+                        onClick={() => {
+                          handleInitiatePay(group.label);
+                        }}
+                      >
+                        Initiate Pay
+                      </button>
+                    ) : null}
+                  </span>
+                  <span className={styles.actualVsPlanCell}>
+                    <span className={styles.actualVsPlanMainRow}>
+                      <span
+                        className={`${styles.actualVsPlanText} ${groupActualVsPlan >= 100 ? styles.actualVsPlanOverPlan : ""}`}
+                      >
+                        {groupActualVsPlan}% to plan
+                      </span>
+                      <NextLink
+                        href={interiorViewerHref}
+                        className={styles.actualVsPlanViewerLink}
+                        aria-label="Open interior 360 capture"
+                      >
+                        <ViewerLinkIcon />
+                      </NextLink>
+                    </span>
                   </span>
                   <span aria-hidden="true" />
                 </div>
@@ -223,6 +247,9 @@ export function SchedulingGrid({ collapsedGroups, onToggleGroup }: SchedulingGri
 
               {visibleRows.map((row) => {
                 const actualVsPlanned = getActualVsPlannedValue(row.id);
+                const canInitiateRowPay = row.percentComplete >= 100;
+                const isRowComplete = row.percentComplete >= 100;
+                const isPayWorkflowRow = payWorkflowActivityIds.has(row.id);
 
                 return (
                   <div className={styles.gridRow} key={row.id}>
@@ -231,24 +258,66 @@ export function SchedulingGrid({ collapsedGroups, onToggleGroup }: SchedulingGri
                         <span className={styles.activityBullet}>•</span>
                         <span className={styles.activityName}>{row.label}</span>
                       </div>
-                      <span className={styles.percentText}>{row.percentComplete}%</span>
-                      <span className={styles.actualVsPlanCell}>
-                        <span
-                          className={`${styles.actualVsPlanText} ${actualVsPlanned >= 100 ? styles.actualVsPlanOverPlan : ""}`}
-                        >
-                          {actualVsPlanned}% to plan
+                      <span className={styles.percentCell}>
+                        <span className={`${styles.percentText} ${isRowComplete ? styles.percentTextComplete : ""}`}>
+                          {row.percentComplete}%
                         </span>
-                        <NextLink
-                          href={interiorViewerHref}
-                          className={styles.actualVsPlanViewerLink}
-                          aria-label="Open interior 360 capture"
+                        {canInitiateRowPay && !isPayWorkflowRow ? (
+                          <button
+                            type="button"
+                            className={styles.initiatePayButton}
+                            onClick={() => {
+                              handleInitiatePay(row.label);
+                            }}
+                          >
+                            Initiate Pay
+                          </button>
+                        ) : null}
+                      </span>
+                      <span className={styles.actualVsPlanCell}>
+                        <span className={styles.actualVsPlanMainRow}>
+                          {isPayWorkflowRow ? (
+                            <span className={styles.actualVsPlanCheckIcon} aria-label="Ahead of plan">
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path
+                                  fillRule="evenodd"
+                                  clipRule="evenodd"
+                                  d="M21 6.04008L9.80083 20L3 14.22L4.94265 11.7536L9.39042 15.5338L18.6433 4L21 6.04008Z"
+                                  fill="currentColor"
+                                />
+                              </svg>
+                            </span>
+                          ) : (
+                            <span
+                              className={`${styles.actualVsPlanText} ${actualVsPlanned >= 100 ? styles.actualVsPlanOverPlan : ""}`}
+                            >
+                              {actualVsPlanned}% to plan
+                            </span>
+                          )}
+                          <NextLink
+                            href={interiorViewerHref}
+                            className={styles.actualVsPlanViewerLink}
+                            aria-label="Open interior 360 capture"
+                          >
+                            <ViewerLinkIcon />
+                          </NextLink>
+                        </span>
+                      </span>
+                      {isPayWorkflowRow ? (
+                        <button
+                          type="button"
+                          className={`${styles.initiatePayButton} ${styles.statusInitiatePayButton}`}
+                          onClick={() => {
+                            handleInitiatePay(row.label);
+                          }}
                         >
-                          <ViewerLinkIcon />
-                        </NextLink>
-                      </span>
-                      <span className={`${styles.statusPill} ${statusClassMap[row.status!]}`}>
-                        {statusLabelMap[row.status!]}
-                      </span>
+                          Initiate Pay
+                        </button>
+                      ) : (
+                        <span className={`${styles.statusPill} ${statusClassMap[row.status!]}`}>
+                          {statusLabelMap[row.status!]}
+                        </span>
+                      )}
                     </div>
                     <div className={styles.timelineRow}>
                       {row.bars.map((bar) => {

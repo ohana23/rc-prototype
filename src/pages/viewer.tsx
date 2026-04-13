@@ -610,6 +610,10 @@ export default function ViewerPage() {
     setSelectedTask(null);
   };
 
+  const handleInitiatePay = (itemLabel: string) => {
+    window.alert(`Initiate Pay workflow started for ${itemLabel}.`);
+  };
+
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
@@ -1301,7 +1305,7 @@ export default function ViewerPage() {
                           setProgressCaptureId(event.target.value);
                         }}
                       >
-                        {CAPTURE_POINTS.map((capture) => (
+                        {CAPTURE_POINTS.filter((capture) => capture.id !== "interior-detail-2026").map((capture) => (
                           <option key={capture.id} value={capture.id}>
                             {capture.label}
                           </option>
@@ -1324,6 +1328,7 @@ export default function ViewerPage() {
                   {filteredProgressCategories.map((category) => {
                     const percentComplete = Math.round((category.installed / category.total) * 100);
                     const isProgressOnTrack = percentComplete >= 75;
+                    const canInitiatePay = percentComplete >= 100;
                     const remaining = Math.max(category.total - category.installed, 0);
                     const installedText = category.unit
                       ? `${category.installed.toLocaleString()} ${category.unit}`
@@ -1404,6 +1409,17 @@ export default function ViewerPage() {
                               </svg>
                             </span>
                           </NextLink>
+                          {canInitiatePay ? (
+                            <button
+                              type="button"
+                              className="immersive-viewer__initiate-pay-button"
+                              onClick={() => {
+                                handleInitiatePay(category.title);
+                              }}
+                            >
+                              Initiate Pay
+                            </button>
+                          ) : null}
                         </div>
                         {isExpanded ? (
                           <div className="immersive-viewer__progress-accordion-body">
@@ -1411,6 +1427,7 @@ export default function ViewerPage() {
                               {subItems.map((subItem) => {
                                 const subItemPercentComplete = Math.round((subItem.installed / subItem.total) * 100);
                                 const isSubItemOnTrack = subItemPercentComplete >= 75;
+                                const canInitiateSubItemPay = subItemPercentComplete >= 100;
                                 const subItemInstalledText = category.unit
                                   ? `${subItem.installed.toLocaleString()} ${category.unit}`
                                   : subItem.installed.toLocaleString();
@@ -1457,6 +1474,17 @@ export default function ViewerPage() {
                                         </svg>
                                       </span>
                                     </NextLink>
+                                    {canInitiateSubItemPay ? (
+                                      <button
+                                        type="button"
+                                        className="immersive-viewer__initiate-pay-button"
+                                        onClick={() => {
+                                          handleInitiatePay(`${category.title} - ${subItem.title}`);
+                                        }}
+                                      >
+                                        Initiate Pay
+                                      </button>
+                                    ) : null}
                                   </li>
                                 );
                               })}

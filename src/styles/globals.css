@@ -1614,6 +1614,28 @@ body {
   margin: 0 14px 8px;
 }
 
+.immersive-viewer__initiate-pay-button {
+  background: #ff5200;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0 14px 10px;
+  min-height: 36px;
+  padding: 8px 12px;
+  text-align: center;
+  transition: background-color 120ms ease;
+  width: calc(100% - 28px);
+}
+
+.immersive-viewer__initiate-pay-button:hover,
+.immersive-viewer__initiate-pay-button:focus-visible {
+  background: #d94600;
+}
+
 .immersive-viewer__progress-schedule-link:hover,
 .immersive-viewer__progress-schedule-link:focus-visible {
   color: #0f5b93;
