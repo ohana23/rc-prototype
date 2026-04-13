@@ -54,8 +54,8 @@ export const scheduleRows: ScheduleRow[] = [
   },
   {
     id: "block-brick",
-    label: "Block/Brick Laid",
-    percentComplete: 70,
+    label: "Brickwork",
+    percentComplete: 60,
     status: "on-track",
     groupId: "masonry",
     level: 1,

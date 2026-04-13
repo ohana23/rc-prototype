@@ -36,11 +36,18 @@ const statusClassMap: Record<ScheduleStatus, string> = {
   "on-track": styles.statusOnTrack,
   "late-to-start": styles.statusLateToStart,
 };
+const actualVsPlanOverrides: Record<string, number> = {
+  "block-brick": 70,
+};
 const additionalOverPlanActivityIds = new Set(["doors-slabs", "grouting"]);
 const payWorkflowActivityIds = new Set(["doors-slabs", "new-activity"]);
 const interiorViewerHref = "/viewer?captureId=interior-detail-2026&panel=progress";
 
 function getActualVsPlannedValue(activityId: string) {
+  if (actualVsPlanOverrides[activityId] !== undefined) {
+    return actualVsPlanOverrides[activityId];
+  }
+
   const hash = activityId.split("").reduce((sum, character) => sum + character.charCodeAt(0), 0);
   if (hash % 7 === 0 || additionalOverPlanActivityIds.has(activityId)) {
     return 101 + (hash % 18);

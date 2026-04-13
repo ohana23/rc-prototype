@@ -1,4 +1,5 @@
 import { Avatar } from "@procore/core-react";
+import Link from "next/link";
 
 const svgDataUri = (svg: string) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 
@@ -103,9 +104,14 @@ export default function TopNav() {
           </svg>
           <span className="top-nav__favorites-copy">
             <span className="top-nav__favorites-label">Favorites</span>
-            <a className="top-nav__favorites-link" href="/scheduling">
-              Scheduling
-            </a>
+            <span className="top-nav__favorites-links">
+              <Link className="top-nav__favorites-link" href="/scheduling">
+                Scheduling
+              </Link>
+              <Link className="top-nav__favorites-link" href="/invoicing">
+                Invoicing
+              </Link>
+            </span>
           </span>
         </div>
         <button className="top-nav__apps-picker" aria-label="App selector">
