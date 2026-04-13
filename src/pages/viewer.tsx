@@ -131,7 +131,7 @@ const CAPTURE_POINTS: CapturePoint[] = [
   {
     id: "interior-detail-2026",
     label: "Interior Detail",
-    captureDate: "Aug 5, 2026",
+    captureDate: "Aug 4, 2026",
     imagePath: "/panoramas/con-pano-interior.jpg",
   },
   {
@@ -184,6 +184,11 @@ const TASK_CREATED_DATES = [
   "Aug 14, 2026",
   "Aug 15, 2026",
   "Aug 16, 2026",
+];
+const TASK_DETAIL_PHOTO_PATHS = [
+  "/task-detail-photos/detail-photo-1.png",
+  "/task-detail-photos/detail-photo-2.png",
+  "/task-detail-photos/detail-photo-3.png",
 ];
 
 const buildTasksForCapture = (captureId: string, captureLabel: string): CaptureTask[] => {
@@ -498,6 +503,7 @@ export default function ViewerPage() {
   const cameraRef = useRef<{ fov: number; updateProjectionMatrix: () => void } | null>(null);
   const updatePanoramaRef = useRef<((imagePath: string) => Promise<void>) | null>(null);
   const minimapHeadingRef = useRef(0);
+  const activeCaptureImagePathRef = useRef(latestCapture.imagePath);
   const yawRef = useRef(0);
   const pitchRef = useRef(0);
   const panAnimationRef = useRef<PanAnimationState>({
@@ -694,7 +700,9 @@ export default function ViewerPage() {
       };
 
       updatePanoramaRef.current = loadPanoramaTexture;
-      await loadPanoramaTexture(activeCapture.imagePath);
+      // Use the latest requested capture image to avoid stale initial loads
+      // when route query params apply before Three.js finishes initializing.
+      await loadPanoramaTexture(activeCaptureImagePathRef.current);
       if (disposed) {
         return;
       }
@@ -997,6 +1005,7 @@ export default function ViewerPage() {
   }, []);
 
   useEffect(() => {
+    activeCaptureImagePathRef.current = activeCapture.imagePath;
     if (updatePanoramaRef.current) {
       void updatePanoramaRef.current(activeCapture.imagePath);
     }
@@ -1181,16 +1190,16 @@ export default function ViewerPage() {
                 </header>
                 {selectedTask ? (
                   <div className="immersive-viewer__task-detail">
-                    <div className="immersive-viewer__task-detail-photos" aria-label="Task photos placeholders">
-                      <div className="immersive-viewer__task-detail-photo" aria-hidden="true">
-                        Photo
-                      </div>
-                      <div className="immersive-viewer__task-detail-photo" aria-hidden="true">
-                        Photo
-                      </div>
-                      <div className="immersive-viewer__task-detail-photo" aria-hidden="true">
-                        Photo
-                      </div>
+                    <div className="immersive-viewer__task-detail-photos" aria-label="Task detail photos">
+                      {TASK_DETAIL_PHOTO_PATHS.map((photoPath, photoIndex) => (
+                        <div key={photoPath} className="immersive-viewer__task-detail-photo">
+                          <img
+                            src={photoPath}
+                            alt={`${selectedTask.title} detail photo ${photoIndex + 1}`}
+                            draggable={false}
+                          />
+                        </div>
+                      ))}
                     </div>
                     <div className="immersive-viewer__task-detail-row">
                       <span className="immersive-viewer__task-detail-label">Status</span>

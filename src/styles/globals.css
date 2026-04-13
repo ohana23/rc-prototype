@@ -1850,6 +1850,14 @@ body {
   font-size: 11px;
   font-weight: 600;
   justify-content: center;
+  overflow: hidden;
+}
+
+.immersive-viewer__task-detail-photo img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
 }
 
 .immersive-viewer__task-detail-row {
