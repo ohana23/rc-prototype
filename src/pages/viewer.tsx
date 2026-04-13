@@ -448,24 +448,6 @@ const SIDE_TOOLS: SideTool[] = [
     ),
   },
   {
-    id: "groups",
-    label: "Groups",
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-        <path d="M4 2H20V4H4V2Z" fill="#232729" />
-        <path d="M4 2L4 21H2L2 2L4 2Z" fill="#232729" />
-        <path d="M22 2V21H20V2H22Z" fill="#232729" />
-        <path d="M4 20H20V22H4V20Z" fill="#232729" />
-        <path d="M1 1H5V5H1V1Z" fill="#232729" />
-        <path d="M19 1H23V5H19V1Z" fill="#232729" />
-        <path d="M19 19H23V23H19V19Z" fill="#232729" />
-        <path d="M1 19H5V23H1V19Z" fill="#232729" />
-        <path d="M9 9H18V18H9V9Z" fill="#232729" />
-        <path d="M6 15H8V8H15V6H6V15Z" fill="#232729" />
-      </svg>
-    ),
-  },
-  {
     id: "measure",
     label: "Measure",
     icon: (
