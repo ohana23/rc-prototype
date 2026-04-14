@@ -140,6 +140,12 @@ const CAPTURE_POINTS: CapturePoint[] = [
     captureDate: "Aug 5, 2026",
     imagePath: "/panoramas/project-map-preview-360-v2.png",
   },
+  {
+    id: "sep-2026-locker-room",
+    label: "Sep 2026",
+    captureDate: "Sep 9, 2026",
+    imagePath: "/panoramas/locker-room-pano.jpg",
+  },
 ];
 
 const TASK_SCOPE_BY_CAPTURE_ID: Record<string, string> = {
@@ -152,6 +158,7 @@ const TASK_SCOPE_BY_CAPTURE_ID: Record<string, string> = {
   "jul-2026": "Tenant fit-out wing",
   "interior-detail-2026": "Interior detail room",
   "aug-2026": "Main entry ceiling plenum",
+  "sep-2026-locker-room": "Main locker room brickwork zone",
 };
 
 const hashSeed = (value: string) => {
@@ -271,7 +278,7 @@ const TASKS_BY_CAPTURE_ID: Record<string, CaptureTask[]> = CAPTURE_POINTS.reduce
 
 const PROGRESS_CATEGORIES: ProgressCategory[] = [
   { id: "doors", title: "Doors", installed: 51, total: 71 },
-  { id: "masonry", title: "Masonry", installed: 6400, total: 7900, unit: "ft²" },
+  { id: "masonry", title: "Brickwork", installed: 6400, total: 7900, unit: "ft²" },
   { id: "drywall-framing", title: "Drywall + Framing", installed: 14320, total: 19100, unit: "ft²" },
   { id: "mechanical", title: "Mechanical", installed: 114, total: 160 },
   { id: "plumbing", title: "Plumbing", installed: 128, total: 172 },
@@ -294,7 +301,7 @@ const PROGRESS_CATEGORIES: ProgressCategory[] = [
 
 const PROGRESS_SUB_ITEMS_BY_CATEGORY_ID: Record<string, string[]> = {
   doors: ["Door frames", "Door slabs", "Seals & weatherstripping", "Door adjustments"],
-  masonry: ["Block/brick laid", "Reinforcement", "Grouting", "Joint tooling & cleaning"],
+  masonry: ["Brickwork", "Reinforcement", "Grouting", "Joint tooling & cleaning"],
   "drywall-framing": ["Framing layout", "Stud framing", "Board installation", "Taping & finishing"],
   mechanical: ["Equipment set", "Duct rough-in", "Insulation", "Startup & balancing"],
   plumbing: ["Underground rough", "In-wall rough", "Fixtures set", "Testing"],
@@ -551,6 +558,10 @@ export default function ViewerPage() {
     const captureId = Array.isArray(rawCaptureId) ? rawCaptureId[0] : rawCaptureId;
     const rawPanel = router.query.panel;
     const panel = Array.isArray(rawPanel) ? rawPanel[0] : rawPanel;
+    const rawProgressCategory = router.query.progressCategory;
+    const progressCategory = Array.isArray(rawProgressCategory) ? rawProgressCategory[0] : rawProgressCategory;
+    const rawProgressSearch = router.query.progressSearch;
+    const progressSearch = Array.isArray(rawProgressSearch) ? rawProgressSearch[0] : rawProgressSearch;
 
     if (captureId) {
       const matchingCapture = CAPTURE_POINTS.find((point) => point.id === captureId);
@@ -563,7 +574,24 @@ export default function ViewerPage() {
     if (panel === "tasks" || panel === "progress") {
       setOpenPanel(panel);
     }
-  }, [router.isReady, router.query.captureId, router.query.panel]);
+
+    if (typeof progressSearch === "string") {
+      setProgressSearchTerm(progressSearch);
+    }
+
+    if (typeof progressCategory === "string") {
+      const matchingProgressCategory = PROGRESS_CATEGORIES.find((category) => category.id === progressCategory);
+      if (matchingProgressCategory) {
+        setExpandedProgressCategoryId(matchingProgressCategory.id);
+      }
+    }
+  }, [
+    router.isReady,
+    router.query.captureId,
+    router.query.panel,
+    router.query.progressCategory,
+    router.query.progressSearch,
+  ]);
 
   const normalizeAngle = (angle: number) => {
     const twoPi = Math.PI * 2;

@@ -434,7 +434,21 @@ export default function Invoice542910818003Page() {
 
                 <div className="schedule-tear-sheet__visual-canvas-wrap">
                   {selectedLocation === "main-locker-room" ? (
-                    <button type="button" className="schedule-tear-sheet__capture-button">
+                    <button
+                      type="button"
+                      className="schedule-tear-sheet__capture-button"
+                      onClick={() => {
+                        void router.push({
+                          pathname: "/viewer",
+                          query: {
+                            captureId: "sep-2026-locker-room",
+                            panel: "progress",
+                            progressCategory: "masonry",
+                            progressSearch: "brickwork",
+                          },
+                        });
+                      }}
+                    >
                       View Last Reality Capture
                     </button>
                   ) : null}
