@@ -43,7 +43,7 @@ export default function ProjectMapAccessCard({
           {title}
         </Typography>
         <div className="project-map-card__meta">
-          <span className="project-map-card__meta-label">Field action view</span>
+          <span className="project-map-card__meta-label">Latest Reality Capture</span>
         </div>
       </header>
       {viewportContent}

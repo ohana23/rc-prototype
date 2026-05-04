@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import TopNav from "@/components/TopNav";
@@ -69,6 +69,21 @@ type SideTool = {
   label: string;
   icon: ReactNode;
 };
+
+type AssistChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+};
+
+type AssistFeedback = "positive" | "negative";
+
+type PendingAssistScramble = {
+  messageId: string;
+  response: string;
+};
+
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 type ProgressCategory = {
   id: string;
@@ -483,6 +498,99 @@ const SIDE_TOOLS: SideTool[] = [
   },
 ];
 
+const ASSIST_PROMPT_EXAMPLES = [
+  "What changed in this area since the last capture?",
+  "Show RFIs related to this room.",
+  "Find invoices tied to work visible here.",
+  "What schedule activities are at risk here?",
+];
+
+// Anime.js animation parameters
+const ASSIST_RESPONSE_DELAY_MS = 1500;
+const ASSIST_COPY_CONFIRMATION_MS = 1500;
+const ASSIST_SCRAMBLE_REVEAL_RATE = 250;
+const ASSIST_SCRAMBLE_SETTLE_DURATION_MS = 200;
+
+const buildAssistMockResponse = (prompt: string, capture: CapturePoint) => {
+  const normalizedPrompt = prompt.toLowerCase();
+  const captureContext = `${capture.label} capture from ${capture.captureDate}`;
+
+  if (normalizedPrompt.includes("change") || normalizedPrompt.includes("changed")) {
+    return `I compared this ${captureContext} against the prior capture. The largest visible changes appear to be overhead MEP rough-in progress, added ceiling framing near the corridor, and cleanup around the main work zone. I would review these areas against the latest schedule activities before marking them complete.`;
+  }
+
+  if (normalizedPrompt.includes("rfi")) {
+    return `I found a few likely RFI touchpoints for this view: ceiling coordination, access panel placement, and MEP clearance around the visible run. For this prototype, I would surface matching RFIs with location tags and due dates here.`;
+  }
+
+  if (normalizedPrompt.includes("invoice") || normalizedPrompt.includes("pay")) {
+    return `I would connect this view to invoice and pay application context by matching visible trade progress to completed schedule items. The likely next step is checking recently billed MEP and finish work against the ${capture.label} progress snapshot.`;
+  }
+
+  if (normalizedPrompt.includes("schedule") || normalizedPrompt.includes("risk")) {
+    return `Based on this ${captureContext}, Assist would flag schedule risk where visible work lags the planned sequence. The main items to check are overhead close-in readiness, inspection dependencies, and any downstream finish activities blocked by incomplete rough-in.`;
+  }
+
+  return `I reviewed this ${captureContext}. In a connected version, I would search project data, related items, and nearby capture history, then summarize the most relevant findings with links back to the source records.`;
+};
+
+const AssistActionIcon = ({ name }: { name: "check" | "copy" | "thumbsUp" | "thumbsDown" | "retry" }) => {
+  if (name === "copy") {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+        <path d="M2 6H4V20H18V22H2V6Z" fill="currentColor" />
+        <path d="M6 2H22V18H6V2Z" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (name === "check") {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M21 6.04008L9.80083 20L3 14.22L4.94265 11.7536L9.39042 15.5338L18.6433 4L21 6.04008Z"
+          fill="currentColor"
+        />
+      </svg>
+    );
+  }
+
+  if (name === "thumbsUp") {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+        <path
+          d="M22 9.97468C22 8.97215 21.2 8.15189 20.2222 8.15189H16.88C17.4044 6.59341 18 4.98025 18 4.05063C18 3.28506 17.2978 2 16 2C14.6933 2 14 3.28506 14 4.05063C14 6.75057 10.6394 7.81381 8.5 8.66456V18.9177C8.5 18.9177 10 19.943 13 19.943L17.5556 20C18.5333 20 19.3333 19.1797 19.3333 18.1772C19.3333 17.8035 19.2178 17.4481 19.0311 17.1656C19.7244 16.9104 20.2222 16.2359 20.2222 15.443C20.2222 15.0694 20.1067 14.7139 19.92 14.4314C20.6133 14.1762 21.1111 13.5018 21.1111 12.7089C21.1111 12.3352 20.9956 11.9797 20.8089 11.6972C21.5022 11.442 22 10.7676 22 9.97468Z"
+          fill="currentColor"
+        />
+        <path d="M7 20V8H2V20H7Z" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (name === "thumbsDown") {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+        <path
+          d="M2 14.0253C2 15.0279 2.8 15.8481 3.77778 15.8481H7.12C6.59556 17.4066 6 19.0197 6 19.9494C6 20.7149 6.70222 22 8 22C9.30667 22 10 20.7149 10 19.9494C10 17.2494 13.3606 16.1862 15.5 15.3354V5.08227C15.5 5.08227 14 4.05696 11 4.05696L6.44444 4C5.46667 4 4.66667 4.82025 4.66667 5.82278C4.66667 6.19646 4.78222 6.5519 4.96889 6.83443C4.27556 7.08962 3.77778 7.76405 3.77778 8.55696C3.77778 8.93063 3.89333 9.28608 4.08 9.56861C3.38667 9.8238 2.88889 10.4982 2.88889 11.2911C2.88889 11.6648 3.00444 12.0203 3.19111 12.3028C2.49778 12.558 2 13.2324 2 14.0253Z"
+          fill="currentColor"
+        />
+        <path d="M17 4V16H22V4H17Z" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+      <path
+        d="M5.91238 5.36737C7.62321 3.96483 9.74513 3.38709 11.6843 3.38709C16.8292 3.38709 21 7.55789 21 12.7028C21 17.8478 16.8292 22.0186 11.6843 22.0186C9.02023 22.0186 6.61572 20.8987 4.91944 19.1075L4.74632 18.9247L6.57439 17.1935L6.74752 17.3763C7.98811 18.6862 9.74002 19.5008 11.6843 19.5008C15.4387 19.5008 18.4822 16.4572 18.4822 12.7028C18.4822 8.94841 15.4387 5.90486 11.6843 5.90486C10.1722 5.90486 8.61681 6.36285 7.40937 7.40025L10.7529 7.70925L10.5212 10.2163L3 9.52125L3.69508 2L6.20216 2.23169L5.91238 5.36737Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+};
+
 export default function ViewerPage() {
   const router = useRouter();
   const latestCapture = CAPTURE_POINTS[CAPTURE_POINTS.length - 1];
@@ -506,6 +614,18 @@ export default function ViewerPage() {
   });
   const fovRef = useRef(75);
   const isPlayingRef = useRef(false);
+  const assistInputRef = useRef<HTMLInputElement | null>(null);
+  const assistInputShellRef = useRef<HTMLDivElement | null>(null);
+  const assistMessageIdRef = useRef(0);
+  const assistResponseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const assistCopyConfirmationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const assistScrambleAnimationRef = useRef<{ cancel: () => unknown } | null>(null);
+  const assistMessageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const assistMessageCopyRefs = useRef<Record<string, HTMLParagraphElement | null>>({});
+  const pendingAssistUserAnimationRef = useRef<{ messageId: string; sourceRect: DOMRect } | null>(null);
+  const isAssistBusyRef = useRef(false);
+  const assistTranscriptEndRef = useRef<HTMLDivElement | null>(null);
+  const assistThinkingRef = useRef<HTMLDivElement | null>(null);
   const hotspotsRef = useRef<Hotspot[]>([
     { id: "northwest-core", yaw: -0.4, pitch: -0.28, radius: 0.2 },
     { id: "field-entry", yaw: 0.45, pitch: -0.22, radius: 0.2 },
@@ -523,6 +643,14 @@ export default function ViewerPage() {
   const [isToolbarNearBottom, setIsToolbarNearBottom] = useState(false);
   const [isToolbarHovered, setIsToolbarHovered] = useState(false);
   const [isBimCompareActive, setIsBimCompareActive] = useState(false);
+  const [isAssistPanelOpen, setIsAssistPanelOpen] = useState(false);
+  const [assistInputValue, setAssistInputValue] = useState("");
+  const [assistMessages, setAssistMessages] = useState<AssistChatMessage[]>([]);
+  const [assistFeedbackByMessage, setAssistFeedbackByMessage] = useState<Record<string, AssistFeedback>>({});
+  const [copiedAssistMessageId, setCopiedAssistMessageId] = useState<string | null>(null);
+  const [isAssistResponding, setIsAssistResponding] = useState(false);
+  const [streamingAssistMessageId, setStreamingAssistMessageId] = useState<string | null>(null);
+  const [pendingAssistScramble, setPendingAssistScramble] = useState<PendingAssistScramble | null>(null);
   const [openPanel, setOpenPanel] = useState<"tasks" | "progress" | null>(null);
   const [selectedTask, setSelectedTask] = useState<CaptureTask | null>(null);
   const [progressSearchTerm, setProgressSearchTerm] = useState("");
@@ -547,6 +675,8 @@ export default function ViewerPage() {
   const isFirstCapture = activeCaptureIndex <= 0;
   const isLastCapture = activeCaptureIndex >= CAPTURE_POINTS.length - 1;
   const isQuickToolbarOpen = isToolbarNearBottom || isToolbarHovered;
+  const hasAssistConversation = assistMessages.length > 0 || isAssistResponding;
+  const isAssistThinking = isAssistResponding && !streamingAssistMessageId;
   const { headingDeg: bimHeadingDeg, pitchDeg: bimPitchDeg, zoomPercent: bimZoomPercent } = bimComparePose;
 
   useEffect(() => {
@@ -642,9 +772,292 @@ export default function ViewerPage() {
     window.alert(`Initiate Pay workflow started for ${itemLabel}.`);
   };
 
+  const clearAssistResponseTimers = () => {
+    if (assistResponseTimeoutRef.current) {
+      clearTimeout(assistResponseTimeoutRef.current);
+      assistResponseTimeoutRef.current = null;
+    }
+
+    if (assistScrambleAnimationRef.current) {
+      assistScrambleAnimationRef.current.cancel();
+      assistScrambleAnimationRef.current = null;
+    }
+  };
+
+  const updateAssistMessageContent = useCallback((messageId: string, content: string) => {
+    setAssistMessages((currentMessages) =>
+      currentMessages.map((message) => (message.id === messageId ? { ...message, content } : message))
+    );
+  }, []);
+
+  const finishAssistResponse = useCallback((messageId: string, response: string) => {
+    updateAssistMessageContent(messageId, response);
+    assistScrambleAnimationRef.current = null;
+    setPendingAssistScramble(null);
+    setStreamingAssistMessageId(null);
+    setIsAssistResponding(false);
+    isAssistBusyRef.current = false;
+  }, [updateAssistMessageContent]);
+
+  const submitAssistPrompt = (prompt: string, sourceElement: HTMLElement | null = assistInputShellRef.current) => {
+    const nextPrompt = prompt.trim();
+    if (!nextPrompt || isAssistBusyRef.current) {
+      return;
+    }
+
+    isAssistBusyRef.current = true;
+    const userMessageId = `assist-user-${assistMessageIdRef.current + 1}`;
+    const assistantMessageId = `assist-response-${assistMessageIdRef.current + 2}`;
+    assistMessageIdRef.current += 2;
+    const assistantResponse = buildAssistMockResponse(nextPrompt, activeCapture);
+    const sourceRect = sourceElement?.getBoundingClientRect();
+    clearAssistResponseTimers();
+    setPendingAssistScramble(null);
+    pendingAssistUserAnimationRef.current = sourceRect ? { messageId: userMessageId, sourceRect } : null;
+    setAssistMessages((currentMessages) => [
+      ...currentMessages,
+      {
+        id: userMessageId,
+        role: "user",
+        content: nextPrompt,
+      },
+    ]);
+    setAssistInputValue("");
+    setIsAssistResponding(true);
+    setStreamingAssistMessageId(null);
+    assistInputRef.current?.focus();
+
+    assistResponseTimeoutRef.current = setTimeout(() => {
+      setAssistMessages((currentMessages) => [
+        ...currentMessages,
+        {
+          id: assistantMessageId,
+          role: "assistant",
+          content: "",
+        },
+      ]);
+      setStreamingAssistMessageId(assistantMessageId);
+      setPendingAssistScramble({
+        messageId: assistantMessageId,
+        response: assistantResponse,
+      });
+      assistResponseTimeoutRef.current = null;
+    }, ASSIST_RESPONSE_DELAY_MS);
+  };
+
+  const handleAssistSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    submitAssistPrompt(assistInputValue);
+  };
+
+  const handleAssistCopy = (messageId: string, content: string) => {
+    if (!content || typeof navigator === "undefined" || !navigator.clipboard) {
+      return;
+    }
+
+    void navigator.clipboard.writeText(content).catch(() => undefined);
+    setCopiedAssistMessageId(messageId);
+
+    if (assistCopyConfirmationTimeoutRef.current) {
+      clearTimeout(assistCopyConfirmationTimeoutRef.current);
+    }
+
+    assistCopyConfirmationTimeoutRef.current = setTimeout(() => {
+      setCopiedAssistMessageId((currentMessageId) => (currentMessageId === messageId ? null : currentMessageId));
+      assistCopyConfirmationTimeoutRef.current = null;
+    }, ASSIST_COPY_CONFIRMATION_MS);
+  };
+
+  const handleAssistFeedback = (messageId: string, feedback: AssistFeedback) => {
+    setAssistFeedbackByMessage((currentFeedback) => {
+      if (currentFeedback[messageId] !== feedback) {
+        return {
+          ...currentFeedback,
+          [messageId]: feedback,
+        };
+      }
+
+      const nextFeedback = { ...currentFeedback };
+      delete nextFeedback[messageId];
+      return nextFeedback;
+    });
+  };
+
+  const handleAssistRetry = (messageId: string) => {
+    const messageIndex = assistMessages.findIndex((message) => message.id === messageId);
+    const previousUserMessage = assistMessages
+      .slice(0, messageIndex)
+      .reverse()
+      .find((message) => message.role === "user");
+
+    if (!previousUserMessage) {
+      return;
+    }
+
+    submitAssistPrompt(previousUserMessage.content, null);
+  };
+
+  const handleAssistNewChat = () => {
+    clearAssistResponseTimers();
+    isAssistBusyRef.current = false;
+    assistMessageIdRef.current = 0;
+    setAssistMessages([]);
+    setAssistFeedbackByMessage({});
+    setAssistInputValue("");
+    setIsAssistResponding(false);
+    setStreamingAssistMessageId(null);
+    setPendingAssistScramble(null);
+    assistInputRef.current?.focus();
+  };
+
+  const handleAssistClose = () => {
+    const activeScramble = pendingAssistScramble;
+    clearAssistResponseTimers();
+
+    if (activeScramble) {
+      updateAssistMessageContent(activeScramble.messageId, activeScramble.response);
+    }
+
+    isAssistBusyRef.current = false;
+    setIsAssistResponding(false);
+    setStreamingAssistMessageId(null);
+    setPendingAssistScramble(null);
+    setIsAssistPanelOpen(false);
+  };
+
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
+
+  useEffect(() => {
+    const scrollTarget = streamingAssistMessageId
+      ? assistMessageCopyRefs.current[streamingAssistMessageId]
+      : isAssistThinking
+        ? assistThinkingRef.current
+        : assistTranscriptEndRef.current;
+    const frameId = window.requestAnimationFrame(() => {
+      scrollTarget?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [assistMessages.length, isAssistThinking, streamingAssistMessageId]);
+
+  useIsomorphicLayoutEffect(() => {
+    const pendingUserAnimation = pendingAssistUserAnimationRef.current;
+
+    if (!pendingUserAnimation) {
+      return;
+    }
+
+    const messageElement = assistMessageRefs.current[pendingUserAnimation.messageId];
+
+    if (!messageElement) {
+      return;
+    }
+
+    pendingAssistUserAnimationRef.current = null;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const targetRect = messageElement.getBoundingClientRect();
+    const translateX = pendingUserAnimation.sourceRect.right - targetRect.right;
+    const translateY = pendingUserAnimation.sourceRect.top - targetRect.top;
+
+    messageElement.style.animation = "none";
+    messageElement.animate(
+      [
+        {
+          opacity: 0.72,
+          transform: `translate(${translateX}px, ${translateY}px) scale(0.98)`,
+        },
+        {
+          opacity: 1,
+          transform: "translate(0, 0) scale(1)",
+        },
+      ],
+      {
+        duration: 460,
+        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+      }
+    );
+  }, [assistMessages.length]);
+
+  useEffect(() => {
+    if (!pendingAssistScramble) {
+      return;
+    }
+
+    const { messageId, response } = pendingAssistScramble;
+    const messageElement = assistMessageCopyRefs.current[messageId];
+
+    if (!messageElement) {
+      finishAssistResponse(messageId, response);
+      return;
+    }
+
+    let isCancelled = false;
+    messageElement.textContent = "";
+
+    const runScrambleAnimation = async () => {
+      try {
+        const { animate, scrambleText } = await import("animejs");
+
+        if (isCancelled || !messageElement.isConnected) {
+          return;
+        }
+
+        const animation = animate(messageElement, {
+          innerHTML: scrambleText({
+            text: response,
+            chars: "lowercase",
+            cursor: "░▒▓█",
+            from: "left",
+            override: "",
+            perturbation: 0.2,
+            revealRate: ASSIST_SCRAMBLE_REVEAL_RATE,
+            settleDuration: ASSIST_SCRAMBLE_SETTLE_DURATION_MS,
+            settleRate: 30,
+            onChange: (scrambledText: string) => {
+              if (!isCancelled) {
+                updateAssistMessageContent(messageId, scrambledText);
+              }
+            },
+          }),
+        });
+
+        assistScrambleAnimationRef.current = animation;
+        await animation;
+
+        if (!isCancelled) {
+          finishAssistResponse(messageId, response);
+        }
+      } catch {
+        if (!isCancelled) {
+          finishAssistResponse(messageId, response);
+        }
+      }
+    };
+
+    void runScrambleAnimation();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [finishAssistResponse, pendingAssistScramble, updateAssistMessageContent]);
+
+  useEffect(() => {
+    return () => {
+      clearAssistResponseTimers();
+      if (assistCopyConfirmationTimeoutRef.current) {
+        clearTimeout(assistCopyConfirmationTimeoutRef.current);
+        assistCopyConfirmationTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     activeCaptureTasksRef.current = activeCaptureTasks;
@@ -1528,8 +1941,265 @@ export default function ViewerPage() {
                 </ul>
               </section>
             ) : null}
-            <aside className="immersive-viewer__minimap" aria-label="Job site mini-map">
-              <div className="immersive-viewer__minimap-frame" ref={minimapFrameRef}>
+            {isAssistPanelOpen ? (
+              <aside id="immersive-viewer-assist-panel" className="immersive-viewer__assist-panel" aria-label="Assist side panel">
+                <header className="immersive-viewer__assist-panel-nav">
+                  <p className="immersive-viewer__assist-panel-title">Assist</p>
+                  <div className="immersive-viewer__assist-panel-actions">
+                    {hasAssistConversation ? (
+                      <button
+                        type="button"
+                        className="immersive-viewer__assist-icon-button"
+                        aria-label="Start new Assist chat"
+                        onClick={handleAssistNewChat}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+                          <path
+                            d="M4.375 3.125C3.68464 3.125 3.125 3.68464 3.125 4.375V15.625C3.125 16.3154 3.68464 16.875 4.375 16.875H15.625C16.3154 16.875 16.875 16.3154 16.875 15.625V10.9375H15.625V15.625H4.375V4.375H9.0625V3.125H4.375Z"
+                            fill="currentColor"
+                          />
+                          <path
+                            d="M14.884 2.36596C14.3958 1.8778 13.6044 1.8778 13.1162 2.36596L7.5 7.98223V10.625H10.1428L15.759 5.00873C16.2472 4.52057 16.2472 3.72912 15.759 3.24096L14.884 2.36596ZM8.75 8.5L13.9999 3.25007L14.8749 4.12507L9.625 9.375H8.75V8.5Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </button>
+                    ) : null}
+                    <button type="button" className="immersive-viewer__assist-icon-button" aria-label="More Assist options">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+                        <path d="M5.83333 10C5.83333 10.9205 5.08714 11.6667 4.16667 11.6667C3.24619 11.6667 2.5 10.9205 2.5 10C2.5 9.07952 3.24619 8.33333 4.16667 8.33333C5.08714 8.33333 5.83333 9.07952 5.83333 10Z" fill="currentColor" />
+                        <path d="M11.6667 10C11.6667 10.9205 10.9205 11.6667 10 11.6667C9.07952 11.6667 8.33333 10.9205 8.33333 10C8.33333 9.07952 9.07952 8.33333 10 8.33333C10.9205 8.33333 11.6667 9.07952 11.6667 10Z" fill="currentColor" />
+                        <path d="M17.5 10C17.5 10.9205 16.7538 11.6667 15.8333 11.6667C14.9129 11.6667 14.1667 10.9205 14.1667 10C14.1667 9.07952 14.9129 8.33333 15.8333 8.33333C16.7538 8.33333 17.5 9.07952 17.5 10Z" fill="currentColor" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      className="immersive-viewer__assist-icon-button"
+                      aria-label="Close Assist panel"
+                      onClick={handleAssistClose}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+                        <path
+                          d="M11.9749 10.0001L17.5001 4.47495L15.5251 2.5L10 8.02508L4.47516 2.50021L2.50021 4.47516L8.02508 10.0001L2.5 15.5251L4.47495 17.5001L10 11.975L15.5251 17.5003L17.5001 15.5254L11.9749 10.0001Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </header>
+                <div
+                  className={`immersive-viewer__assist-panel-body${
+                    hasAssistConversation ? " immersive-viewer__assist-panel-body--chat" : ""
+                  }`}
+                  aria-busy={isAssistResponding}
+                >
+                  {hasAssistConversation ? (
+                    <div className="immersive-viewer__assist-transcript" aria-live="polite">
+                      {assistMessages.map((message) => {
+                        const isStreamingMessage = message.id === streamingAssistMessageId;
+                        const shouldShowResponseActions =
+                          message.role === "assistant" && message.content.trim().length > 0 && !isStreamingMessage;
+                        const assistFeedback = assistFeedbackByMessage[message.id];
+                        const isAssistCopyActive = copiedAssistMessageId === message.id;
+
+                        return (
+                          <div
+                            key={message.id}
+                            ref={(element) => {
+                              assistMessageRefs.current[message.id] = element;
+                            }}
+                            className={`immersive-viewer__assist-message immersive-viewer__assist-message--${message.role}${
+                              isStreamingMessage ? " immersive-viewer__assist-message--streaming" : ""
+                            }`}
+                          >
+                            <p
+                              className="immersive-viewer__assist-message-copy"
+                              ref={
+                                message.role === "assistant"
+                                  ? (element) => {
+                                      assistMessageCopyRefs.current[message.id] = element;
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {message.content}
+                            </p>
+                            {shouldShowResponseActions ? (
+                              <div className="immersive-viewer__assist-message-actions" aria-label="Response actions">
+                                <button
+                                  type="button"
+                                  className={`immersive-viewer__assist-message-action immersive-viewer__assist-message-action--copy${
+                                    isAssistCopyActive ? " immersive-viewer__assist-message-action--copied" : ""
+                                  }`}
+                                  aria-label={isAssistCopyActive ? "Response copied" : "Copy response"}
+                                  onClick={() => {
+                                    handleAssistCopy(message.id, message.content);
+                                  }}
+                                >
+                                  <span className="immersive-viewer__assist-message-action-icon" aria-hidden="true">
+                                    <span className="immersive-viewer__assist-message-action-icon-state immersive-viewer__assist-message-action-icon-state--copy">
+                                      <AssistActionIcon name="copy" />
+                                    </span>
+                                    <span className="immersive-viewer__assist-message-action-icon-state immersive-viewer__assist-message-action-icon-state--check">
+                                      <AssistActionIcon name="check" />
+                                    </span>
+                                  </span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`immersive-viewer__assist-message-action${
+                                    assistFeedback === "positive"
+                                      ? " immersive-viewer__assist-message-action--selected"
+                                      : ""
+                                  }`}
+                                  aria-label="Mark response as helpful"
+                                  aria-pressed={assistFeedback === "positive"}
+                                  onClick={() => {
+                                    handleAssistFeedback(message.id, "positive");
+                                  }}
+                                >
+                                  <AssistActionIcon name="thumbsUp" />
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`immersive-viewer__assist-message-action${
+                                    assistFeedback === "negative"
+                                      ? " immersive-viewer__assist-message-action--selected"
+                                      : ""
+                                  }`}
+                                  aria-label="Mark response as not helpful"
+                                  aria-pressed={assistFeedback === "negative"}
+                                  onClick={() => {
+                                    handleAssistFeedback(message.id, "negative");
+                                  }}
+                                >
+                                  <AssistActionIcon name="thumbsDown" />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="immersive-viewer__assist-message-action"
+                                  aria-label="Retry response"
+                                  disabled={isAssistResponding}
+                                  onClick={() => {
+                                    handleAssistRetry(message.id);
+                                  }}
+                                >
+                                  <AssistActionIcon name="retry" />
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                      {isAssistThinking ? (
+                        <div
+                          className="immersive-viewer__assist-message immersive-viewer__assist-message--assistant immersive-viewer__assist-message--typing"
+                          ref={assistThinkingRef}
+                        >
+                          <div className="immersive-viewer__assist-typing" aria-label="Assist is thinking">
+                            <span />
+                            <span />
+                            <span />
+                          </div>
+                        </div>
+                      ) : null}
+                      <div className="immersive-viewer__assist-transcript-live-spacer" aria-hidden="true" />
+                      <div ref={assistTranscriptEndRef} />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="immersive-viewer__assist-hero">
+                        <svg
+                          className="immersive-viewer__assist-hero-icon"
+                          width="44"
+                          height="44"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <path
+                            d="M8.66958 8.66958C8.16641 9.17274 7.61532 9.61608 7.02137 10C5.08004 8.74515 2.68077 8.12501 0 8.12501C2.74905 8.12501 4.72819 7.30766 6.01792 6.01792C7.30766 4.72819 8.125 2.74905 8.125 0H11.875C11.875 3.50095 10.8173 6.52181 8.66958 8.66958Z"
+                            fill="#FF7433"
+                          />
+                          <path
+                            d="M11.3304 11.3304C11.8336 10.8273 12.3847 10.3839 12.9786 10C14.92 11.2549 17.3192 11.875 20 11.875C17.251 11.875 15.2718 12.6924 13.9821 13.9821C12.6923 15.2718 11.875 17.251 11.875 20H8.125C8.125 16.4991 9.18265 13.4782 11.3304 11.3304Z"
+                            fill="#FF7433"
+                          />
+                          <path
+                            d="M11.3304 8.66957C10.8273 8.16641 10.3839 7.61532 10 7.02138C11.2549 5.08004 11.875 2.68077 11.875 0C11.875 2.74905 12.6923 4.72819 13.9821 6.01792C15.2718 7.30766 17.251 8.125 20 8.125V11.875C16.499 11.875 13.4782 10.8173 11.3304 8.66957Z"
+                            fill="#FF5100"
+                          />
+                          <path
+                            d="M8.66958 11.3304C6.52181 9.18267 3.50095 8.12501 0 8.12501V11.875C2.74905 11.875 4.72819 12.6924 6.01793 13.9821C7.30766 15.2718 8.125 17.251 8.125 20C8.125 17.3192 8.74514 14.92 10 12.9786C9.61608 12.3847 9.17274 11.8336 8.66958 11.3304Z"
+                            fill="#FF5100"
+                          />
+                        </svg>
+                        <h2>How can I help?</h2>
+                        <p>
+                          Ask something about this Reality Capture or your project data. I can search Invoices, Schedules,
+                          RFIs, submittals, and more.
+                        </p>
+                      </div>
+                      <div className="immersive-viewer__assist-prompts" aria-label="Example Assist prompts">
+                        {ASSIST_PROMPT_EXAMPLES.map((prompt) => (
+                          <button
+                            key={prompt}
+                            type="button"
+                            className="immersive-viewer__assist-prompt-button"
+                            onClick={(event) => {
+                              submitAssistPrompt(prompt, event.currentTarget);
+                            }}
+                            disabled={isAssistResponding}
+                          >
+                            {prompt}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <form
+                  className="immersive-viewer__assist-composer"
+                  onSubmit={handleAssistSubmit}
+                >
+                  <label className="immersive-viewer__assist-input-label" htmlFor="assist-input">
+                    Ask Assist
+                  </label>
+                  <div className="immersive-viewer__assist-input-shell" ref={assistInputShellRef}>
+                    <input
+                      id="assist-input"
+                      ref={assistInputRef}
+                      type="text"
+                      value={assistInputValue}
+                      onChange={(event) => {
+                        setAssistInputValue(event.target.value);
+                      }}
+                      placeholder="Ask about this capture or project data"
+                    />
+                    <button
+                      type="submit"
+                      className="immersive-viewer__assist-submit-button"
+                      aria-label="Submit Ask Assist prompt"
+                      disabled={!assistInputValue.trim() || isAssistResponding}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
+                        <path
+                          d="M9 2.25L15.75 9L9 15.75L7.9425 14.6925L12.885 9.75H2.25V8.25H12.885L7.9425 3.3075L9 2.25Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="immersive-viewer__assist-disclaimer">
+                    AI-generated answers require human review. Assist may not be entirely accurate.
+                  </p>
+                </form>
+              </aside>
+            ) : null}
+            {!isAssistPanelOpen ? (
+              <aside className="immersive-viewer__minimap" aria-label="Job site mini-map">
+                <div className="immersive-viewer__minimap-frame" ref={minimapFrameRef}>
                 <button
                   type="button"
                   className="immersive-viewer__minimap-fullscreen-button"
@@ -1574,8 +2244,9 @@ export default function ViewerPage() {
                   />
                   <span className="immersive-viewer__minimap-you" />
                 </span>
-              </div>
-            </aside>
+                </div>
+              </aside>
+            ) : null}
             <div className="immersive-viewer__hud">
               {/* <p className="immersive-viewer__viewport-label">Drag to look around. Scroll to zoom.</p> */}
             </div>
@@ -1642,122 +2313,153 @@ export default function ViewerPage() {
               </button>
             </div>
             {!isQuickToolbarOpen ? <div className="immersive-viewer__quick-toolbar-capsule" aria-hidden="true" /> : null}
-            <div className="immersive-viewer__controls" aria-label="Viewer controls" ref={controlsRef}>
-              <div className="immersive-viewer__control-buttons">
-                <button
-                  type="button"
-                  className="immersive-viewer__control-button immersive-viewer__control-button--icon"
-                  onClick={() => {
-                    setIsPlaying((prev) => !prev);
-                  }}
-                  aria-pressed={isPlaying}
-                  aria-label={isPlaying ? "Pause playback" : "Play playback"}
-                >
-                  {isPlaying ? (
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
-                      <rect x="3" y="2.5" width="3.5" height="11" rx="1" fill="currentColor" />
-                      <rect x="9.5" y="2.5" width="3.5" height="11" rx="1" fill="currentColor" />
-                    </svg>
-                  ) : (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-                      <path d="M7 20V4L19 12.5333L7 20Z" fill="currentColor" />
-                    </svg>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="immersive-viewer__control-button immersive-viewer__control-button--icon"
-                  onClick={() => {
-                    handleZoom(-4);
-                  }}
-                  aria-label="Zoom in"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-                    <path
-                      d="M9.25842 6.99976H10.7584V9.23938H12.998V10.7394H10.7584V12.979H9.25842V10.7394H7.0188V9.23938H9.25842V6.99976Z"
-                      fill="currentColor"
-                    />
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M9.99805 16.998C11.5704 16.998 13.0216 16.4796 14.1902 15.6044L19.5878 21.002L21.002 19.5878L15.6044 14.1902C16.4796 13.0216 16.998 11.5704 16.998 9.99805C16.998 6.13205 13.864 2.99805 9.99805 2.99805C6.13205 2.99805 2.99805 6.13205 2.99805 9.99805C2.99805 13.864 6.13205 16.998 9.99805 16.998ZM9.99805 14.998C12.7595 14.998 14.998 12.7595 14.998 9.99805C14.998 7.23662 12.7595 4.99805 9.99805 4.99805C7.23662 4.99805 4.99805 7.23662 4.99805 9.99805C4.99805 12.7595 7.23662 14.998 9.99805 14.998Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  className="immersive-viewer__control-button immersive-viewer__control-button--icon"
-                  onClick={() => {
-                    handleZoom(4);
-                  }}
-                  aria-label="Zoom out"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-                    <path d="M7.0188 9.23938V10.7394H12.998V9.23938H7.0188Z" fill="currentColor" />
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M9.99805 16.998C11.5704 16.998 13.0216 16.4796 14.1902 15.6044L19.5878 21.002L21.002 19.5878L15.6044 14.1902C16.4796 13.0216 16.998 11.5704 16.998 9.99805C16.998 6.13205 13.864 2.99805 9.99805 2.99805C6.13205 2.99805 2.99805 6.13205 2.99805 9.99805C2.99805 13.864 6.13205 16.998 9.99805 16.998ZM9.99805 14.998C12.7595 14.998 14.998 12.7595 14.998 9.99805C14.998 7.23662 12.7595 4.99805 9.99805 4.99805C7.23662 4.99805 4.99805 7.23662 4.99805 9.99805C4.99805 12.7595 7.23662 14.998 9.99805 14.998Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="immersive-viewer__capture-nav" aria-label="Capture navigator">
-                <span className="immersive-viewer__capture-nav-date">{activeCapture.captureDate}</span>
-                <div className="immersive-viewer__capture-nav-arrows">
+            <div className="immersive-viewer__bottom-controls">
+              <div className="immersive-viewer__controls" aria-label="Viewer controls" ref={controlsRef}>
+                <div className="immersive-viewer__control-buttons">
                   <button
                     type="button"
-                    className="immersive-viewer__capture-nav-button"
-                    onClick={handlePreviousCapture}
-                    aria-label="Show previous capture"
-                    disabled={isFirstCapture}
+                    className="immersive-viewer__control-button immersive-viewer__control-button--icon"
+                    onClick={() => {
+                      setIsPlaying((prev) => !prev);
+                    }}
+                    aria-pressed={isPlaying}
+                    aria-label={isPlaying ? "Pause playback" : "Play playback"}
                   >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <rect width="24" height="24" rx="4" fill="#D6DADC" />
+                    {isPlaying ? (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+                        <rect x="3" y="2.5" width="3.5" height="11" rx="1" fill="currentColor" />
+                        <rect x="9.5" y="2.5" width="3.5" height="11" rx="1" fill="currentColor" />
+                      </svg>
+                    ) : (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                        <path d="M7 20V4L19 12.5333L7 20Z" fill="currentColor" />
+                      </svg>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className="immersive-viewer__control-button immersive-viewer__control-button--icon"
+                    onClick={() => {
+                      handleZoom(-4);
+                    }}
+                    aria-label="Zoom in"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                      <path
+                        d="M9.25842 6.99976H10.7584V9.23938H12.998V10.7394H10.7584V12.979H9.25842V10.7394H7.0188V9.23938H9.25842V6.99976Z"
+                        fill="currentColor"
+                      />
                       <path
                         fillRule="evenodd"
                         clipRule="evenodd"
-                        d="M9.15686 12.8441L13.0018 16.824L11.7965 18L6 12L11.7965 6L13.0018 7.17598L9.15686 11.1559L18 11.1559V12.8441L9.15686 12.8441Z"
-                        fill="#232729"
+                        d="M9.99805 16.998C11.5704 16.998 13.0216 16.4796 14.1902 15.6044L19.5878 21.002L21.002 19.5878L15.6044 14.1902C16.4796 13.0216 16.998 11.5704 16.998 9.99805C16.998 6.13205 13.864 2.99805 9.99805 2.99805C6.13205 2.99805 2.99805 6.13205 2.99805 9.99805C2.99805 13.864 6.13205 16.998 9.99805 16.998ZM9.99805 14.998C12.7595 14.998 14.998 12.7595 14.998 9.99805C14.998 7.23662 12.7595 4.99805 9.99805 4.99805C7.23662 4.99805 4.99805 7.23662 4.99805 9.99805C4.99805 12.7595 7.23662 14.998 9.99805 14.998Z"
+                        fill="currentColor"
                       />
                     </svg>
                   </button>
                   <button
                     type="button"
-                    className="immersive-viewer__capture-nav-button"
-                    onClick={handleNextCapture}
-                    aria-label="Show next capture"
-                    disabled={isLastCapture}
+                    className="immersive-viewer__control-button immersive-viewer__control-button--icon"
+                    onClick={() => {
+                      handleZoom(4);
+                    }}
+                    aria-label="Zoom out"
                   >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <rect width="24" height="24" rx="4" fill="#D6DADC" />
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                      <path d="M7.0188 9.23938V10.7394H12.998V9.23938H7.0188Z" fill="currentColor" />
                       <path
                         fillRule="evenodd"
                         clipRule="evenodd"
-                        d="M14.8431 11.1559L10.9982 7.17598L12.2035 6L18 12L12.2035 18L10.9982 16.824L14.8431 12.8441L6 12.8441V11.1559L14.8431 11.1559Z"
-                        fill="#232729"
+                        d="M9.99805 16.998C11.5704 16.998 13.0216 16.4796 14.1902 15.6044L19.5878 21.002L21.002 19.5878L15.6044 14.1902C16.4796 13.0216 16.998 11.5704 16.998 9.99805C16.998 6.13205 13.864 2.99805 9.99805 2.99805C6.13205 2.99805 2.99805 6.13205 2.99805 9.99805C2.99805 13.864 6.13205 16.998 9.99805 16.998ZM9.99805 14.998C12.7595 14.998 14.998 12.7595 14.998 9.99805C14.998 7.23662 12.7595 4.99805 9.99805 4.99805C7.23662 4.99805 4.99805 7.23662 4.99805 9.99805C4.99805 12.7595 7.23662 14.998 9.99805 14.998Z"
+                        fill="currentColor"
                       />
                     </svg>
                   </button>
                 </div>
+
+                <div className="immersive-viewer__capture-nav" aria-label="Capture navigator">
+                  <span className="immersive-viewer__capture-nav-date">{activeCapture.captureDate}</span>
+                  <div className="immersive-viewer__capture-nav-arrows">
+                    <button
+                      type="button"
+                      className="immersive-viewer__capture-nav-button"
+                      onClick={handlePreviousCapture}
+                      aria-label="Show previous capture"
+                      disabled={isFirstCapture}
+                    >
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <rect width="24" height="24" rx="4" fill="#D6DADC" />
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M9.15686 12.8441L13.0018 16.824L11.7965 18L6 12L11.7965 6L13.0018 7.17598L9.15686 11.1559L18 11.1559V12.8441L9.15686 12.8441Z"
+                          fill="#232729"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      className="immersive-viewer__capture-nav-button"
+                      onClick={handleNextCapture}
+                      aria-label="Show next capture"
+                      disabled={isLastCapture}
+                    >
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <rect width="24" height="24" rx="4" fill="#D6DADC" />
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M14.8431 11.1559L10.9982 7.17598L12.2035 6L18 12L12.2035 18L10.9982 16.824L14.8431 12.8441L6 12.8441V11.1559L14.8431 11.1559Z"
+                          fill="#232729"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
+              <button
+                type="button"
+                className="immersive-viewer__ask-assist-button"
+                onClick={() => {
+                  setIsAssistPanelOpen(true);
+                }}
+                aria-expanded={isAssistPanelOpen}
+                aria-controls="immersive-viewer-assist-panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+                  <path
+                    d="M8.66958 8.66958C8.16641 9.17274 7.61532 9.61608 7.02137 10C5.08004 8.74515 2.68077 8.12501 0 8.12501C2.74905 8.12501 4.72819 7.30766 6.01792 6.01792C7.30766 4.72819 8.125 2.74905 8.125 0H11.875C11.875 3.50095 10.8173 6.52181 8.66958 8.66958Z"
+                    fill="#FF7433"
+                  />
+                  <path
+                    d="M11.3304 11.3304C11.8336 10.8273 12.3847 10.3839 12.9786 10C14.92 11.2549 17.3192 11.875 20 11.875C17.251 11.875 15.2718 12.6924 13.9821 13.9821C12.6923 15.2718 11.875 17.251 11.875 20H8.125C8.125 16.4991 9.18265 13.4782 11.3304 11.3304Z"
+                    fill="#FF7433"
+                  />
+                  <path
+                    d="M11.3304 8.66957C10.8273 8.16641 10.3839 7.61532 10 7.02138C11.2549 5.08004 11.875 2.68077 11.875 0C11.875 2.74905 12.6923 4.72819 13.9821 6.01792C15.2718 7.30766 17.251 8.125 20 8.125V11.875C16.499 11.875 13.4782 10.8173 11.3304 8.66957Z"
+                    fill="#FF5100"
+                  />
+                  <path
+                    d="M8.66958 11.3304C6.52181 9.18267 3.50095 8.12501 0 8.12501V11.875C2.74905 11.875 4.72819 12.6924 6.01793 13.9821C7.30766 15.2718 8.125 17.251 8.125 20C8.125 17.3192 8.74514 14.92 10 12.9786C9.61608 12.3847 9.17274 11.8336 8.66958 11.3304Z"
+                    fill="#FF5100"
+                  />
+                </svg>
+                <span>Ask Assist</span>
+              </button>
             </div>
             </div>
             {isBimCompareActive ? (

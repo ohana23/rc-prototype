@@ -35,6 +35,10 @@ export default function Invoice542910818003Page() {
   const router = useRouter();
   const isLockerRoomThirdFloor =
     selectedLevel === "third-floor" && selectedLocation === "main-locker-room";
+  const selectLockerRoomVisual = () => {
+    setSelectedLevel("third-floor");
+    setSelectedLocation("main-locker-room");
+  };
 
   useEffect(() => {
     if (!isScheduleTearSheetOpen) {
@@ -378,7 +382,7 @@ export default function Invoice542910818003Page() {
                   <div className="schedule-tear-sheet__visual-selectors">
                     <label className="schedule-tear-sheet__field">
                       <span>Level</span>
-                      <select value={selectedLevel} onChange={(event) => setSelectedLevel(event.target.value)}>
+                      <select value={selectedLevel} onChange={selectLockerRoomVisual}>
                         <option value="third-floor">Third Floor</option>
                         <option value="second-floor">Second Floor</option>
                         <option value="first-floor">First Floor</option>
@@ -386,7 +390,7 @@ export default function Invoice542910818003Page() {
                     </label>
                     <label className="schedule-tear-sheet__field">
                       <span>Location</span>
-                      <select value={selectedLocation} onChange={(event) => setSelectedLocation(event.target.value)}>
+                      <select value={selectedLocation} onChange={selectLockerRoomVisual}>
                         <option value="main-concourse">Main Concourse</option>
                         <option value="north-stands">North Stands</option>
                         <option value="south-stands">South Stands</option>
@@ -436,7 +440,7 @@ export default function Invoice542910818003Page() {
                   {selectedLocation === "main-locker-room" ? (
                     <button
                       type="button"
-                      className="schedule-tear-sheet__capture-button"
+                      className="schedule-tear-sheet__capture-card"
                       onClick={() => {
                         void router.push({
                           pathname: "/viewer",
@@ -448,8 +452,23 @@ export default function Invoice542910818003Page() {
                           },
                         });
                       }}
+                      aria-label="View latest reality capture for the main locker room"
                     >
-                      View Last Reality Capture
+                      <span className="schedule-tear-sheet__capture-preview">
+                        <img
+                          className="schedule-tear-sheet__capture-preview-image"
+                          src="/panoramas/locker-room-pano.jpg"
+                          alt=""
+                          aria-hidden="true"
+                        />
+                        <span className="schedule-tear-sheet__capture-preview-overlay">
+                          <span className="schedule-tear-sheet__capture-preview-pill">Latest Capture</span>
+                          <span className="schedule-tear-sheet__capture-preview-date">Sep 9, 2026</span>
+                        </span>
+                      </span>
+                      <span className="schedule-tear-sheet__capture-card-label">
+                        View Latest Reality Capture
+                      </span>
                     </button>
                   ) : null}
                   <img
