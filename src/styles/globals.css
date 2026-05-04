@@ -1251,6 +1251,7 @@ body {
 }
 
 .schedule-tear-sheet__panel {
+  animation: tear-sheet-slide-in 0.3s ease-out;
   background: #f6f8fa;
   box-shadow: -12px 0 28px rgba(0, 0, 0, 0.25);
   height: 100vh;
@@ -1259,6 +1260,15 @@ body {
   min-width: 520px;
   position: relative;
   width: 52vw;
+}
+
+@keyframes tear-sheet-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 .schedule-tear-sheet__close {
@@ -1305,13 +1315,16 @@ body {
 }
 
 .schedule-tear-sheet__full-schedule-btn {
+  align-items: center;
   background: #ffffff;
   border: 1px solid #d6dadc;
   border-radius: 4px;
   color: #1b1f20;
   cursor: pointer;
+  display: inline-flex;
   font-size: 13px;
   font-weight: 600;
+  gap: 6px;
   min-height: 32px;
   padding: 0 12px;
 }
@@ -1994,24 +2007,13 @@ body {
   line-height: 28px;
 }
 
-.project-map-card__weather {
-  align-items: baseline;
-  color: #232729;
-  display: inline-flex;
-  gap: 8px;
-}
-
-.project-map-card__weather-now {
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.project-map-card__weather-range {
+.project-map-card__meta {
   color: #6a767c;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 16px;
 }
 
 .project-map-card__viewport {
@@ -2131,6 +2133,23 @@ body {
   top: 42%;
 }
 
+.project-map-card--clickable {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.project-map-card--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.project-map-card--clickable:focus-visible {
+  outline: 3px solid #1f5db5;
+  outline-offset: 2px;
+}
+
 .project-map-card__expand {
   align-items: center;
   background: #ffffff;
@@ -2148,6 +2167,86 @@ body {
   top: 10px;
   width: 28px;
   z-index: 1;
+}
+
+.project-map-card__overlay {
+  background: linear-gradient(180deg, rgba(9, 14, 18, 0.2) 0%, rgba(9, 14, 18, 0.82) 55%, rgba(9, 14, 18, 0.92) 100%);
+  bottom: 0;
+  color: #ffffff;
+  display: grid;
+  gap: 8px;
+  inset: auto 0 0;
+  padding: 14px;
+  position: absolute;
+  z-index: 1;
+}
+
+.project-map-card__walkthrough {
+  font-size: 13px;
+  line-height: 18px;
+  margin: 0;
+}
+
+.project-map-card__alert {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  margin: 0;
+}
+
+.project-map-card__chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-map-card__chip {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  padding: 4px 10px;
+}
+
+.project-map-card__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-map-card__action {
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+  min-height: 30px;
+  padding: 6px 10px;
+  text-decoration: none;
+}
+
+.project-map-card__action[aria-disabled="true"] {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.project-map-card__action--primary {
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  color: #1f5db5;
+}
+
+.project-map-card__action--secondary {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: #ffffff;
+}
+
+.project-map-card__action:focus-visible {
+  outline: 3px solid #8ab4f8;
+  outline-offset: 1px;
 }
 
 .project-map-card__attribution {
@@ -3308,9 +3407,9 @@ body {
   gap: 6px;
   pointer-events: none;
   position: absolute;
-  bottom: 14px;
-  left: 14px;
-  width: min(300px, calc(100vw - 28px));
+  top: 16px;
+  right: 16px;
+  width: min(300px, calc(100vw - 32px));
   z-index: 4;
 }
 
@@ -3333,7 +3432,7 @@ body {
   pointer-events: auto;
   position: relative;
   transform: scale(0.75);
-  transform-origin: bottom left;
+  transform-origin: top right;
   transition: transform 180ms ease;
   width: 100%;
 }
@@ -3699,8 +3798,8 @@ body {
 }
 
 .immersive-viewer__control-button[aria-pressed="true"] {
-  background: #edf2fc;
-  color: #0067db;
+  background: #d0d0d0;
+  color: #3a3a3a;
 }
 
 .immersive-viewer__control-button--icon svg {
@@ -3792,10 +3891,6 @@ body {
     flex-direction: column;
   }
 
-  .project-map-card__weather-now {
-    font-size: 24px;
-  }
-
   .project-map-card__search-tooltip {
     left: 26%;
     max-width: min(360px, calc(100% - 60px));
@@ -3844,12 +3939,22 @@ body {
     gap: 6px;
   }
 
-  .project-map-card__weather-now {
-    font-size: 20px;
-  }
-
   .project-map-card__viewport {
     min-height: 190px;
+  }
+
+  .project-map-card__overlay {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .project-map-card__alert {
+    font-size: 14px;
+  }
+
+  .project-map-card__action {
+    font-size: 12px;
+    min-height: 28px;
   }
 
   .project-map-card__search-tooltip {
@@ -3894,9 +3999,9 @@ body {
   }
 
   .immersive-viewer__minimap {
-    bottom: 12px;
-    left: 12px;
-    width: min(220px, calc(100vw - 24px));
+    top: 16px;
+    right: 16px;
+    width: min(220px, calc(100vw - 32px));
   }
 
   .immersive-viewer__hud {

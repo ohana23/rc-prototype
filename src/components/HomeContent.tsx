@@ -7,18 +7,14 @@ type ViewAccessEntry = {
   id: string;
   title: string;
   href?: string;
-  mappedItemsLabel: string;
-  accessLabel: string;
   status: ViewAccessEntryStatus;
 };
 
 const VIEW_ACCESS_ENTRIES: ViewAccessEntry[] = [
   {
     id: "3d-view",
-    title: "Project Visual",
+    title: "Reality Capture",
     href: "/viewer",
-    mappedItemsLabel: "All Mapped Items",
-    accessLabel: "Open 3D jobsite experience",
     status: "available",
   },
 ];
@@ -32,8 +28,6 @@ export default function HomeContent() {
             key={entry.id}
             title={entry.title}
             href={entry.href}
-            mappedItemsLabel={entry.mappedItemsLabel}
-            accessLabel={entry.accessLabel}
             status={entry.status}
           />
         ))}
